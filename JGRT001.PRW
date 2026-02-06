@@ -438,11 +438,11 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 		_cQuery += "     SB1.D_E_L_E_T_ = ' ' " + CRLF
 		_cQuery += "     AND B1_FILIAL = "+ValToSql(FWxFilial('SB1')) + CRLF
 		_cQuery += "     AND B1_MSBLQL <> '1' " + CRLF
-		If fTipoDb() == "ORACLE"
-			_cQuery += "     AND ( LENGTH(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
-		Else
-			_cQuery += "     AND ( LEN(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
-		EndIf
+		// If fTipoDb() == "ORACLE"
+		// 	_cQuery += "     AND ( LENGTH(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
+		// Else
+		// 	_cQuery += "     AND ( LEN(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
+		// EndIf
 
 	Else
 
@@ -463,11 +463,11 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 		_cQuery += "     AND B1_MSBLQL <> '1' " + CRLF
 		_cQuery += "     AND COALESCE(SB2.D_E_L_E_T_,' ') = ' ' " + CRLF
 		_cQuery += "     AND ( SB2.B2_FILIAL IS NOT NULL AND ( SB2.B2_QATU - SB2.B2_RESERVA - SB2.B2_QEMP ) >= 1 ) " + CRLF
-		If fTipoDb() == "ORACLE"
-			_cQuery += "     AND ( LENGTH(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
-		Else
-			_cQuery += "     AND ( LEN(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
-		EndIf
+		// If fTipoDb() == "ORACLE"
+		// 	_cQuery += "     AND ( LENGTH(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
+		// Else
+		// 	_cQuery += "     AND ( LEN(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
+		// EndIf
 
 	EndIf
 
