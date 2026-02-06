@@ -58,6 +58,12 @@ User Function RelMapSe()
 	FreeObj(oPrinter)
 Return
 
+/*/{Protheus.doc} RelMapSe (Static)
+Imprime o mapa de separação com logo, dados da empresa/cliente e produtos.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function RelMapSe(oPrinter)
 	Local nLin              := 09
 	Local nPag              := 1
@@ -73,6 +79,13 @@ Static Function RelMapSe(oPrinter)
     oPrinter:EndPage()
 Return
 
+/*/{Protheus.doc} GetLogo
+Retorna o caminho do arquivo de logo conforme empresa.
+@type static function
+@author
+@since 02/02/2026
+@return cLogo, character, Caminho do arquivo de imagem
+/*/
 Static Function GetLogo()
 
 	Local _cLogo      := ""
@@ -92,6 +105,12 @@ Static Function GetLogo()
 
 Return _cLogo
 
+/*/{Protheus.doc} ImpLogo
+Imprime logo e código de barras da ordem de separação.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpLogo(oPrinter, nLin, nPag)
 	Local nColTex := 150
 	Local nColBar := 450
@@ -111,6 +130,12 @@ Static Function ImpLogo(oPrinter, nLin, nPag)
 	
 Return
 
+/*/{Protheus.doc} ImpCab
+Imprime cabeçalho com dados da empresa, cliente e pedido.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpCab(oPrinter, nLin, nPag)
 
 	Local cCliCod  := SA1->A1_COD
@@ -200,6 +225,12 @@ Static Function ImpCab(oPrinter, nLin, nPag)
 Return
 
 
+/*/{Protheus.doc} ImpCabProd
+Imprime cabeçalho da tabela de produtos com colunas.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpCabProd(oPrinter, nLin)
 	Local nProxCol	:= 0
 
@@ -210,7 +241,7 @@ Static Function ImpCabProd(oPrinter, nLin)
 	//CABEÇALHO DOS PRODUTOS
 	nLin +=_nProxLin
 	oPrinter:Say(nLin,_nColInicio				,"Cód"				,oFont11N:oFont)
-	nProxCol += 120
+	nProxCol += 90
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Produto"			,oFont11N:oFont)
 	nProxCol += 120
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Und."				,oFont11N:oFont)
@@ -224,10 +255,19 @@ Static Function ImpCabProd(oPrinter, nLin)
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Ref.Fornecedor"	,oFont11N:oFont)
 	nProxCol += 65
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Localização"		,oFont11N:oFont)
+	nProxCol += 65
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Lote"				,oFont11N:oFont)
 	nLin += 5
 	oPrinter:Line(nLin,_nColIniPag,nLin,_nLimPaCol)
 	
 Return
+
+/*/{Protheus.doc} ImpProd
+Imprime os produtos/itens da ordem de separação com quantidade, marca e localização.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpProd(oPrinter, nLin, nPag, _nMaxLin)
 
 	Local nProxCol := 0
@@ -270,7 +310,7 @@ Static Function ImpProd(oPrinter, nLin, nPag, _nMaxLin)
 		oPrinter:Say(nLin, _nColInicio, CB8->CB8_PROD, oFont11:oFont)
 		
 
-		nProxCol += 75
+		nProxCol += 45
 		// Quebra descrição sem cortar palavra
 		aLinhas := QuebraTexto(SB1->B1_DESC, _nTamMaxPr)
 		// Produto (linha 1)
@@ -297,7 +337,7 @@ Static Function ImpProd(oPrinter, nLin, nPag, _nMaxLin)
 			Transform(CB8->CB8_QTDORI, "@E 999.999"), ;
 			oFont11:oFont)
 
-		nProxCol += 65
+		nProxCol += 55
 
 		// Marca (SB1)
 		oPrinter:Say(nLin, ;
@@ -329,6 +369,14 @@ Static Function ImpProd(oPrinter, nLin, nPag, _nMaxLin)
 			PadR(CB8->CB8_LCALIZ, 18), ;
 			oFont11:oFont)
 
+		nProxCol += 65
+
+		// Lote
+		oPrinter:Say(nLin, ;
+			_nColInicio + nProxCol, ;
+			PadR(CB8->CB8_LOTECT, 18), ;
+			oFont11:oFont)
+
 		// Avança linha
 		nLin += _nProxLin
 		If Len(aLinhas) > 1
@@ -342,6 +390,12 @@ Static Function ImpProd(oPrinter, nLin, nPag, _nMaxLin)
 
 Return
 
+/*/{Protheus.doc} ImpObs
+Imprime observações do pedido quebradas em múltiplas linhas.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpObs(oPrinter, nLin)
 	Local nX
 	Local aLinhas := QuebraTexto(AllTrim(SC5->C5_MENNOTA), _nTamMaxObs)
@@ -360,6 +414,12 @@ Static Function ImpObs(oPrinter, nLin)
 Return
 
 
+/*/{Protheus.doc} ImpRod
+Imprime rodapé com número da página.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpRod(oPrinter, nPag)
 
 	//RODAPE
@@ -370,6 +430,15 @@ Return
 
 
 // Retorna um array com as linhas já quebradas
+/*/{Protheus.doc} QuebraTexto
+Quebra texto em múltiplas linhas conforme tamanho máximo.
+@type static function
+@author
+@since 02/02/2026
+@param cTexto, character, Texto a quebrar
+@param nTamMax, numeric, Tamanho máximo por linha
+@return aLinhas, array, Array com linhas quebradas
+/*/
 Static Function QuebraTexto(cTexto, nTamMax)
 	Local aLinhas := {}
 	Local cLinha  := ""
@@ -395,6 +464,12 @@ Static Function QuebraTexto(cTexto, nTamMax)
 
 Return aLinhas
 
+/*/{Protheus.doc} SayLabelValue
+Imprime um rótulo seguido de seu valor.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function SayLabelValue(oPrinter, nLin, nCol, cLabel, cValue)
 	Local nLabelLen := oPrinter:GetTextWidth(cLabel, oFont11N:oFont,2) - Len(cLabel)
 	oPrinter:Say(nLin, nCol, cLabel, oFont11N:oFont)
@@ -405,6 +480,14 @@ Static Function SayLabelValue(oPrinter, nLin, nCol, cLabel, cValue)
 		oFont11:oFont )
 Return
 
+/*/{Protheus.doc} GetFreightType
+Retorna a descrição do tipo de frete.
+@type static function
+@author
+@since 02/02/2026
+@param cType, character, Código do tipo de frete (C, F, T, R, D, S)
+@return cDesc, character, Descrição do tipo de frete
+/*/
 Static Function GetFreightType(cType)
 	Local cDesc := ""
 	Do Case
@@ -425,6 +508,13 @@ Static Function GetFreightType(cType)
 	EndCase
 Return cDesc
 
+/*/{Protheus.doc} GetEndEnt
+Retorna o endereço de entrega baseado nos dados do cliente.
+@type static function
+@author
+@since 02/02/2026
+@return cEndEnt, character, Endereço de entrega completo
+/*/
 Static Function GetEndEnt()
 	Local cEndEnt 	:= ""
 	Local aArea 	:= GetArea()

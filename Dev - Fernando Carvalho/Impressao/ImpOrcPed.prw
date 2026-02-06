@@ -9,6 +9,22 @@
 #Define COR_VERMELHO RGB(255, 000, 000)
 #Define COR_PRETO2  RGB(100, 100, 100)
 
+/*/{Protheus.doc} ImpOrcPed
+Função que realiza a impressão de orçamentos e pedidos em formato PDF.
+Recupera dados do cliente e produtos, permitindo impressão com ou sem imagens,
+e gera relatório formatado com logo, cabeçalho, produtos e rodapé.
+@type user function
+@author 
+@since 02/02/2026
+@version 1.0
+@return nil
+@example
+// Chamar a função a partir de um browse de pedidos/orçamentos
+ImpOrcPed()
+@see
+ImpOrcPed, GetTipoPedido, GetLogo, ImpLogo, ImpCabCli
+/*/
+
 User Function ImpOrcPed()
     Local oPrinter
     Local lAdjustToLegacy   := .F.
@@ -33,13 +49,13 @@ User Function ImpOrcPed()
     Private cTipoPed        := ''
 
     If (cAliasImp == "SC5")
-        cChaveCli   := &("xFilial('SA1') + SC5->C5_CLIENTE + SC5->C5_LOJACLI")
+        cChaveCli   := xFilial('SA1') + SC5->C5_CLIENTE + SC5->C5_LOJACLI
         cNum        := SC5->C5_NUM
     Elseif (cAliasImp == "SCJ")
-        cChaveCli   := &("xFilial('SA1') + SCJ->CJ_CLIENTE + SCJ->CJ_LOJA")
+        cChaveCli   := xFilial('SA1') + SCJ->CJ_CLIENTE + SCJ->CJ_LOJA
         cNum        := SCJ->CJ_NUM
     ElseIf (cAliasImp == "SL1")
-        cChaveCli := &("xFilial('SA1') + SL1->L1_CLIENTE + SL1->L1_LOJA")
+        cChaveCli := xFilial('SA1') + SL1->L1_CLIENTE + SL1->L1_LOJA
         cNum        := SL1->L1_NUM
     Else
         MsgInfo("Este relatório deve ser executado a partir do pedido de orcamento.","Atenção")
@@ -48,13 +64,16 @@ User Function ImpOrcPed()
         
 	dbSelectArea("SA1")
 	SA1->(DbSetOrder(1))
-	SA1->(DbSeek(cChaveCli))
+	If !(SA1->(DbSeek(cChaveCli)))
+        MsgInfo("NÃO EXISTE cadastro na TABELA SA1!","Atenção")
+        Return  
+    Endif
 
 	_cTime		:= Alltrim(StrTran(_cTime,":",""))
     
     cTipoPed    := GetTipoPedido(cAliasImp)    
 
-	oPrinter 	:= FWMSPrinter():New(StrTokArr(SA1->A1_NOME,' ')[1]+ cNum, IMP_PDF, lAdjustToLegacy,cLocal, lDisableSetup, , , , , , .F., )
+	oPrinter 	:= FWMSPrinter():New(GetNomeCli()+ cNum, IMP_PDF, lAdjustToLegacy,cLocal, lDisableSetup, , , , , , .F., )
 	
     
 
@@ -94,6 +113,13 @@ Static Function ImpOrcPed(oPrinter)
 	oPrinter:EndPage()
 Return
 
+/*/{Protheus.doc} GetLogo
+Retorna o caminho do arquivo de logo conforme empresa.
+@type static function
+@author
+@since 02/02/2026
+@return cLogo, character, Caminho do arquivo de imagem
+/*/
 Static Function GetLogo()
 
 	Local _cLogo      := ""
@@ -112,6 +138,13 @@ Static Function GetLogo()
 	EndIf
 
 Return _cLogo
+
+/*/{Protheus.doc} ImpLogo
+Imprime logo e dados da empresa (CNPJ, endereço, etc).
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpLogo(oPrinter, nLin, nPag)
 	Local nColPos	:= _nColInicio
 	//LOGO
@@ -143,6 +176,12 @@ Return
 
 
 
+/*/{Protheus.doc} ImpCabCli
+Imprime cabeçalho com dados do cliente (CNPJ, endereço, vendedor, etc).
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpCabCli(oPrinter, nLin, nPag)
 
     Local nColEsq   := _nColInicio
@@ -213,6 +252,12 @@ Static Function ImpCabCli(oPrinter, nLin, nPag)
 
 Return
 
+/*/{Protheus.doc} ImpCabProd
+Imprime cabeçalho da tabela de produtos com colunas.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpCabProd(oPrinter, nLin, nPag)
 	Local nProxCol	:= 0
 
@@ -258,11 +303,16 @@ Static Function ImpCabProd(oPrinter, nLin, nPag)
 
 Return
 
+/*/{Protheus.doc} ImpProdutos
+Imprime os produtos/itens do pedido com foto, preço e impostos.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpProdutos(oPrinter, nLin, nPag)
     Local nCol      := 0
     Local cProduto  := 0
     Local nQuant    := 0
-    Local nCST      := 0
     Local nAliqIcm  := 0
     Local nICMS     := 0
     Local nItem     := 0
@@ -313,13 +363,14 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
     xImposto( SA1->A1_COD, SA1->A1_LOJA, SA1->A1_TIPO, cTpFrete )
 
     While !(cAliasPro)->(Eof()) .And. &(cChavePed)
+        nItem++
+        
         If (cAliasImp == "SC5")
             nPreco   := &("SC6->C6_PRCVEN")
             nDesc    := &("SC6->C6_VALDESC")
             nTotal   := &("SC6->C6_VALOR")
             cProduto := &("SC6->C6_PRODUTO")
-            nQuant   := &("SC6->C6_QTDVEN")
-            nItem    := Val(&("SC6->C6_ITEM"))
+            nQuant   := &("SC6->C6_QTDVEN")            
             cTes     := &("SC6->C6_TES")
         Elseif (cAliasImp == "SCJ")
             nPreco   := &("SCK->CK_PRCVEN")
@@ -327,7 +378,6 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
             nTotal   := &("SCK->CK_VALOR")
             cProduto := &("SCK->CK_PRODUTO")
             nQuant   := &("SCK->CK_QTDVEN")
-            nItem    := Val(&("SCK->CK_ITEM"))
             cTes     := &("SCK->CK_TES")
 
         ElseIf (cAliasImp == "SL1")
@@ -336,9 +386,9 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
             nTotal   := &("SL2->L2_VLRITEM")
             cProduto := &("SL2->L2_PRODUTO")
             nQuant   := &("SL2->L2_QUANT")
-            nItem    := Val(&("SL2->L2_ITEM"))
             cTes     := &("SL2->L2_TES")
         EndIf
+
         MaFisAdd(;
 				cProduto            ,;// 1-Codigo do Produto ( Obrigatorio )
                 cTes          ,;// 2-Codigo do TES ( Opcional )
@@ -357,7 +407,7 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
                 , , , , , , , , , , , , ,;
                 ) // 28-Classificacao fiscal)
 
-        nCST     := MaFisRet(nItem,"IT_VALSOL")
+        
         nICMS    := MaFisRet(nItem,"IT_VALICM")
         nAliqIcm := MaFisRet(nItem,"IT_ALIQICM")
 
@@ -429,7 +479,7 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
 			nLin += _nProxLin
 		EndIf
         nTotalG += nTotal
-        nTotalI += nTotal + nCST + nICMS
+        nTotalI += nTotal + nICMS
         (cAliasPro)->(DbSkip())
 
     EndDo
@@ -444,10 +494,22 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
 	oPrinter:Line(nLin,_nColIniPag,nLin,_nLimPaCol)
 Return
 
+/*/{Protheus.doc} ImpImposto
+Função reservada para impressão de detalhes de impostos.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpImposto()
 
 Return
 
+/*/{Protheus.doc} ImpObs
+Imprime observações do pedido quebradas em múltiplas linhas.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpObs(oPrinter, nLin)
 	Local nX
 	Local aLinhas := QuebraTexto(AllTrim(SC5->C5_MENNOTA), _nTamMaxObs)
@@ -465,12 +527,25 @@ Static Function ImpObs(oPrinter, nLin)
 	oPrinter:Line(nLin,_nColIniPag,nLin,_nLimPaCol)
 Return
 
+/*/{Protheus.doc} ImpRod
+Imprime rodapé com número da página.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function ImpRod(oPrinter, nPag)
 
 	//RODAPE
 	oPrinter:Line(768,_nColIniPag,768,_nLimPaCol)
 	oPrinter:Say(780,280,"Página " + StrZero(nPag,2))    
 Return
+
+/*/{Protheus.doc} SayLabelValue
+Imprime um rótulo seguido de seu valor.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function SayLabelValue(oPrinter, nLin, nCol, cLabel, cValue)
 	Local nLabelLen := oPrinter:GetTextWidth(cLabel, oFont12N:oFont,2) - Len(cLabel)
 	oPrinter:Say(nLin, nCol, cLabel, oFont12N:oFont)
@@ -481,6 +556,13 @@ Static Function SayLabelValue(oPrinter, nLin, nCol, cLabel, cValue)
 		oFont11:oFont )
 Return
 
+/*/{Protheus.doc} GetFoto
+Retorna o caminho da foto do produto.
+@type static function
+@author
+@since 02/02/2026
+@return cPathImage, character, Caminho da imagem do produto
+/*/
 Static Function GetFoto()
     Local aExtensao     := {".JPG",".JPEG",".BMP",".PNG"}
     Local cExtensao     := ""
@@ -500,6 +582,12 @@ Static Function GetFoto()
     Next nX
 Return cPathImage
 
+/*/{Protheus.doc} xImposto
+Inicializa o cálculo fiscal para o cliente.
+@type static function
+@author
+@since 02/02/2026
+/*/
 Static Function xImposto(cCliCodigo, cCliLoja, cCliTipo, cCliTpFrete)
 //+------------------------------------------------------------------------------+
 		// Inicializa a funo fiscal                                                    |
@@ -536,6 +624,15 @@ Static Function xImposto(cCliCodigo, cCliLoja, cCliTipo, cCliTpFrete)
 Return        
 
 // Retorna um array com as linhas já quebradas
+/*/{Protheus.doc} QuebraTexto
+Quebra texto em múltiplas linhas conforme tamanho máximo.
+@type static function
+@author
+@since 02/02/2026
+@param cTexto, character, Texto a quebrar
+@param nTamMax, numeric, Tamanho máximo por linha
+@return aLinhas, array, Array com linhas quebradas
+/*/
 Static Function QuebraTexto(cTexto, nTamMax)
 	Local aLinhas := {}
 	Local cLinha  := ""
@@ -562,6 +659,14 @@ Static Function QuebraTexto(cTexto, nTamMax)
 Return aLinhas
 
 
+/*/{Protheus.doc} GetFreightType
+Retorna a descrição do tipo de frete.
+@type static function
+@author
+@since 02/02/2026
+@param cType, character, Código do tipo de frete (C, F, T, R, D, S)
+@return cDesc, character, Descrição do tipo de frete
+/*/
 Static Function GetFreightType(cType)
 	Local cDesc := ""
 	Do Case
@@ -583,6 +688,14 @@ Static Function GetFreightType(cType)
 Return cDesc
 
 
+/*/{Protheus.doc} GetTipoPedido
+Retorna o tipo de pedido conforme o alias (SC5, SCJ, SL1).
+@type static function
+@author
+@since 02/02/2026
+@param cAliasImp, character, Alias da tabela (SC5, SCJ, SL1)
+@return cTipo, character, Tipo de pedido
+/*/
 Static Function GetTipoPedido(cAliasImp)
     Local cTipo     := ""
     
@@ -600,3 +713,19 @@ Static Function GetTipoPedido(cAliasImp)
         EndIf            
     EndIf
 Return cTipo    
+
+Static Function GetNomeCli()
+    Local cNomeCli  := ""
+    Local aNome     := {}
+    Local nX        := 0
+
+    aNome := StrTokArr(SA1->A1_NOME,' ')
+
+    For nX := 1 To Len(aNome)
+        If !SubStr(aNome[nX],1,1) $  "0123456789"
+            cNomeCli := AllTrim(aNome[nX])
+            Exit
+        EndIf    
+    Next nX
+
+Return cNomeCli
