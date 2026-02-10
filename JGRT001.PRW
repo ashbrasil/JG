@@ -22,11 +22,11 @@
 User Function JGRT001(_cCodProd)
 	Local _cChave     := Space(TamSX3("B1_COD")[1])
 	Local _cChvBar    := Space(TamSX3("B1_CODBAR")[1])
-	Local _cChvRFor   := Space(TamSX3("A5_CODPRF")[1])
+	Local _cChvRFor   := Space(TamSX3("B1_XREFFOR")[1])
 	Local _cDesc	  := Space(TamSX3("B1_DESC")[1])
 	Local _cChvGr	  := Space(TamSX3("B1_GRUPO")[1]) //chave para grupo produto
 	Local _cChvFab	  := Space(TamSX3("B1_FABRIC")[1]) //chave para fabricante/marca
-	Local _cChvCA	  := Space(TamSX3("B1_XCA")[1]) //chave para C.A.
+	Local _cChvMod	  := Space(TamSX3("B1_MODELO")[1]) //chave para modelo
 	Local _aTitulos   := {}
 	Local cEmpBkp     := ""
 	Local cFilBkp     := ""
@@ -43,6 +43,12 @@ User Function JGRT001(_cCodProd)
 	Local _aSA1       := SA1->( FWGetArea() )
 	Local _aSA2       := SA2->( FWGetArea() )
 	Local _aSY1       := SY1->( FWGetArea() )
+
+	// Local cJGGERLOJ   := SuperGetMV("JG_GERLOJ", .F., "XYZXYZ;") //Código dos acesssos que liberam a edição de pedidos de outros vendedores.
+	Local cCodVndLog  := POSICIONE("SA3",7,FWXFILIAL("SA3")+__CUSERID,"A3_COD")
+	Local cCarVndLog  := IIf(!Empty(cCodVndLog),POSICIONE("SA3",1,FWXFILIAL("SA3")+cCodVndLog,"A3_CARGO"),"") //Cargo do vendedor logado
+
+	Private lMostraCusto := ( FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;000003;" ) ) // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
 
 	Private _cFiliais := ""
 	Private _cRet     := ""
@@ -163,33 +169,32 @@ User Function JGRT001(_cCodProd)
 	DEFINE MSDIALOG _oDlg TITLE _cTitulo FROM 0,0 TO 570,1000 OF oMainWnd PIXEL //Modificado GetWndDefault() para oMainWnd, estava abrindo na browse
 	
 	@ 014+25,002 Say "Descrição:" Size 040,008 COLOR CLR_BLACK PIXEL OF _oDlg
-	@ 013+25,030 MSGET _oDesc VAR _cDesc VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)) SIZE 150,9 PIXEL
+	@ 013+25,030 MSGET _oDesc VAR _cDesc VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)) SIZE 150,9 PIXEL
 
-	DEFINE SBUTTON oBut2 FROM 013+25,180 TYPE 1 ACTION (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)) ENABLE of _oDlg
+	DEFINE SBUTTON oBut2 FROM 013+25,180 TYPE 1 ACTION (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)) ENABLE of _oDlg
 
-	SetKey(VK_F12,{||,_cChave:=SPACE(TAMSX3("B1_COD")[1]+20),_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor),_oDesc:SetFocus()})       // fernando
+	SetKey(VK_F12,{||,_cChave:=SPACE(TAMSX3("B1_COD")[1]+20),_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod),_oDesc:SetFocus()})       // fernando
 	SetKey(VK_F11,{||,U_JGRT002(_aProduto[_oListBox:nAT][02]+SPACE(10))})       // Consulta Reserva
 	// Desabilita as teclas F4, F5, F6, F7 na tela de vendas
 	//LjTeclas( .F., .F., .F., .F. )
 
 	// Cria listbox com os dados dos produtos conforme a tabela temporaria criada 
-	// IF CNIVEL > 5
+	If lMostraCusto
+		AAdd(_aProduto, {"","","","","","","","","","","","","",""} )
+		AAdd(_aTitulos, { "", "Codigo", "Descrição", "Tipo", "UM", "Preço", "2aUM", "Preço 2aUM", "Custo", "Ref.Fornecedor", "Marca", "Modelo", "Gr Trib", "Grupo"})
+		AAdd(_aTitulos, { 06, 50      , 150        , 12    , 12  , 35     , 12    , 35          , 35     , 60              , 60     , 45      , 35       , 30      })
+	Else
 		AAdd(_aProduto, {"","","","","","","","","","","","",""} )
-		// AAdd(_aTitulos, {"","Codigo","Descrição","Tipo","UM","Preço","Custo","Grupo","Sub-Grupo","Classe", "Fabricante","Grupo Trib.","Modelo"})
-		AAdd(_aTitulos, {"","Codigo","Descrição","Tipo","UM","Preço","Custo","Marca","Grupo","CA","Gr Trib","Modelo"})
-		AAdd(_aTitulos, {06,50,      150,        12,    12,  35,     35,     60,      20,    35,  25,       30})
-	// ELSE
-	// 	AAdd(_aProduto, {"","","","","","","","","","","",""} )
-	// 	AAdd(_aTitulos, {"","Codigo","Descrição","Tipo","UM","Preço","Grupo","Sub-Grupo","Classe", "Fabricante","Grupo Trib.","Modelo"})
-	// 	AAdd(_aTitulos, {10,50,100,20,20,30,30,35,50})
-	// ENDIF
+		AAdd(_aTitulos, { "", "Codigo", "Descrição", "Tipo", "UM", "Preço", "2aUM", "Preço 2aUM", "Ref.Fornecedor", "Marca", "Modelo", "Gr Trib", "Grupo"})
+		AAdd(_aTitulos, { 06, 50      , 150        , 12    , 12  , 35     , 12    , 35          , 60              , 60     , 45     , 35       , 30      })
+	EndIf
 
 	_oListBox := TWBrowse():New(040+25,001,500,120,,_aTitulos[1],_aTitulos[2],_oDlg,,,,,,,,,,,,.F.,,.T.,,.F.)
 	_oListBox:bChange    := {|| _oChgProd("T", FWxFilial("SB2")) }
 	_oListBox:blDblClick := {|| PosProd(_aProduto[_oListBox:nAT][02] ), _oDlg:End() }
 	_oListBox:SetArray(_aProduto)
 
-	// IF CNIVEL > 5
+	If lMostraCusto
 		_oListBox:bLine := { || { LoadBitmap(GetResources()    ,;
 		_aProduto[_oListBox:nAT][01]),;
 		_aProduto[_oListBox:nAT][02] ,;
@@ -202,45 +207,47 @@ User Function JGRT001(_cCodProd)
 		_aProduto[_oListBox:nAT][09] ,;
 		_aProduto[_oListBox:nAT][10], ;
 		_aProduto[_oListBox:nAT][11], ;
-		_aProduto[_oListBox:nAT][12], ;						  
+		_aProduto[_oListBox:nAT][12], ;
+		_aProduto[_oListBox:nAT][13], ;
+		_aProduto[_oListBox:nAT][14] } }
+	Else
+		_oListBox:bLine := { || { LoadBitmap(GetResources()    ,;
+		_aProduto[_oListBox:nAT][01]),;
+		_aProduto[_oListBox:nAT][02] ,;
+		_aProduto[_oListBox:nAT][03] ,;
+		_aProduto[_oListBox:nAT][04] ,;
+		_aProduto[_oListBox:nAT][05] ,;
+		_aProduto[_oListBox:nAT][06] ,;
+		_aProduto[_oListBox:nAT][07] ,;
+		_aProduto[_oListBox:nAT][08] ,;
+		_aProduto[_oListBox:nAT][09] ,;
+		_aProduto[_oListBox:nAT][10], ;
+		_aProduto[_oListBox:nAT][11], ;
+		_aProduto[_oListBox:nAT][12], ;
 		_aProduto[_oListBox:nAT][13] } }
-	// ELSE
-	// 	_oListBox:bLine := { || { LoadBitmap(GetResources()    ,;
-	// 	_aProduto[_oListBox:nAT][01]),;
-	// 	_aProduto[_oListBox:nAT][02] ,;
-	// 	_aProduto[_oListBox:nAT][03] ,;
-	// 	_aProduto[_oListBox:nAT][04] ,;
-	// 	_aProduto[_oListBox:nAT][05] ,;
-	// 	_aProduto[_oListBox:nAT][06] ,;
-	// 	_aProduto[_oListBox:nAT][07] ,;
-	// 	_aProduto[_oListBox:nAT][08] ,;
-	// 	_aProduto[_oListBox:nAT][09] ,;
-	// 	_aProduto[_oListBox:nAT][10], ;
-	// 	_aProduto[_oListBox:nAT][11], ;
-	// 	_aProduto[_oListBox:nAT][12] } }
-	// ENDIF                                                   
+	EndIf                                                   
 
-	@ 014+25,215 Say "Código:" Size 030,008 COLOR CLR_BLACK PIXEL OF _oDlg
-	@ 013+25,235 MSGET _oChave VAR _cChave F3 "SB1" VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)) SIZE 60,9 PIXEL
+	@ 014+25,214 Say "Código:" Size 030,008 COLOR CLR_BLACK PIXEL OF _oDlg
+	@ 013+25,235 MSGET _oChave VAR _cChave F3 "SB1" VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)) SIZE 60,9 PIXEL
 
-	@ 014+25,300 Say "Cód. barras:" Size 045,008 COLOR CLR_BLACK PIXEL OF _oDlg
-	@ 013+25,335 MSGET _cChvBar VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)) SIZE 55,9 PIXEL
+	@ 014+25,303 Say "Cód. barras:" Size 045,008 COLOR CLR_BLACK PIXEL OF _oDlg
+	@ 013+25,335 MSGET _cChvBar VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)) SIZE 55,9 PIXEL
 
 	@ 014+25,395 Say "Ref. Fornec.:" Size 045,008 COLOR CLR_BLACK PIXEL OF _oDlg
-	@ 013+25,430 MSGET _cChvRFor F3 "XSA5" VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)) SIZE 70,9 PIXEL
+	@ 013+25,430 MSGET _cChvRFor VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)) SIZE 70,9 PIXEL
 
-	@ 029+25,215 Say "Marca:" Size 030,008 COLOR CLR_BLACK PIXEL OF _oDlg
-	@ 028+25,235 MSGET _cChvFab VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)) SIZE 80,9 PIXEL
+	@ 029+25,218 Say "Marca:" Size 030,008 COLOR CLR_BLACK PIXEL OF _oDlg
+	@ 028+25,235 MSGET _cChvFab VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)) SIZE 80,9 PIXEL
 
-	@ 029+25,320 Say "C.A.:" Size 030,008 COLOR CLR_BLACK PIXEL OF _oDlg
-	@ 028+25,335 MSGET _cChvCA F3 "ZCA" VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)) SIZE 50,9 PIXEL 
+	@ 029+25,330 Say "Modelo:" Size 030,008 COLOR CLR_BLACK PIXEL OF _oDlg
+	@ 028+25,355 MSGET _cChvMod VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)) SIZE 60,9 PIXEL 
 
-	@ 029+25,390 Say "Grupo:" Size 030,008 COLOR CLR_BLACK PIXEL OF _oDlg
-	@ 028+25,410 MSGET _cChvGr F3 "SBM" VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)) SIZE 30,9 PIXEL 
+	@ 029+25,420 Say "Grupo:" Size 030,008 COLOR CLR_BLACK PIXEL OF _oDlg
+	@ 028+25,440 MSGET _cChvGr F3 "SBM" VALID (_oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)) SIZE 30,9 PIXEL 
 
 	oCheck1 := TCheckBox():New(30+25,008,"Mostrar produtos sem estoque",,_oDlg,100,300,,,,,,,,.T.,,,)
 	oCheck1:bSetGet := {|| lCheck1 }
-	oCheck1:bLClicked := {|| lCheck1:=!lCheck1, _oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor) }
+	oCheck1:bLClicked := {|| lCheck1:=!lCheck1, _oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod) }
 	oCheck1:bWhen := {|| .T. }                                      
 
 	AAdd(_aSldB2, {"", Transform(0,"@E 999,999.99")} )
@@ -260,20 +267,14 @@ User Function JGRT001(_cCodProd)
 	//oTBitmap2:lAutoSize := .T.
 
 	// Recupera os parametros passados pela chamada do programa
-	fGetPar(@_cDesc,@_cChave,@_cChvBar,@_cChvRFor,@_cChvFab,@_cChvCA,@_cChvGr) //,@lCheck1)
+	fGetPar(@_cDesc,@_cChave,@_cChvBar,@_cChvRFor,@_cChvFab,@_cChvGr,@_cChvMod) //,@lCheck1)
 
 	If !Empty(_cCodProd)
 		_oPesqSB1(.T.,_cCodProd)
 	Else
-		Processa({|| _oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor) },"Pesquisando produto...")
+		Processa({|| _oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod) },"Pesquisando produto...")
 	EndIf
 
-	// If !Empty(mv_par60)
-	// 	Processa({|| _oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)},"Pesquisando produto...")
-	// EndIf
-
-	//ACTIVATE MSDIALOG _oDlg CENTER
-	//ACTIVATE MsDIALOG _oDlg ON INIT ENCHOICEBAR(_oDlg,{|| PosProd(_aProduto[_oListBox:nAT][02]),_oDlg:END()},{|| IIF(Empty(_cCodProd),PosProd("XXXXXXXXXX",2),PosProd(_cCodProd)),_oDlg:END()},,aBUTTONS) CENTERED
 	ACTIVATE MsDIALOG _oDlg ON INIT ENCHOICEBAR(_oDlg,{|| PosProd(_aProduto[_oListBox:nAT][02]),_oDlg:END()},{|| /*IIF(Empty(_cCodProd),PosProd("XXXXXXXXXX",2),PosProd(_cCodProd)),*/ _oDlg:END()},,aBUTTONS) CENTERED
 
 	// Desabilita as teclas F4, F5, F6, F7
@@ -310,7 +311,7 @@ User Function JGRT001(_cCodProd)
 
 Return (_auxRet)
 
-Static Function fGetPar(_cDesc, _cChave, _cChvBar, _cChvRFor, _cChvFab, _cChvCA, _cChvGr) //, lCheck1)
+Static Function fGetPar(_cDesc, _cChave, _cChvBar, _cChvRFor, _cChvFab, _cChvGr,_cChvMod)
 	Local aPropParams  := {}
 	Local ojsParams    := Nil
 	Local nPar
@@ -339,18 +340,17 @@ Static Function fGetPar(_cDesc, _cChave, _cChvBar, _cChvRFor, _cChvFab, _cChvCA,
 
 		_cChave   := Space(TamSX3("B1_COD")[1])
 		_cChvBar  := Space(TamSX3("B1_CODBAR")[1])
-		_cChvRFor := Space(TamSX3("A5_CODPRF")[1])
+		_cChvRFor := Space(TamSX3("B1_XREFFOR")[1])
 		_cDesc    := Space(TamSX3("B1_DESC")[1])
 		_cChvGr	  := Space(TamSX3("B1_GRUPO")[1]) //chave para grupo produto
 		_cChvFab  := Space(TamSX3("B1_FABRIC")[1]) //chave para fabricante/marca
-		_cChvCA	  := Space(TamSX3("B1_XCA")[1]) //chave para C.A.
-		// lCheck1   := .F.
+		_cChvMod  := Space(TamSX3("B1_MODELO")[1]) //chave para modelo
 
 	EndIf
 
 Return
 
-Static Function fSetPar(_cDesc, _cChave, _cChvBar, _cChvRFor, _cChvFab, _cChvCA, _cChvGr) //, lCheck1)
+Static Function fSetPar(_cDesc, _cChave, _cChvBar, _cChvRFor, _cChvFab, _cChvGr,_cChvMod)
 	Local oJsParams
 
 	oJsParams := JsonObject():New()
@@ -359,9 +359,8 @@ Static Function fSetPar(_cDesc, _cChave, _cChvBar, _cChvRFor, _cChvFab, _cChvCA,
 	oJsParams["_cChvBar" ] := _cChvBar
 	oJsParams["_cChvRFor"] := _cChvRFor
 	oJsParams["_cChvFab" ] := _cChvFab
-	oJsParams["_cChvCA"	 ] := _cChvCA
+	oJsParams["_cChvMod" ] := _cChvMod
 	oJsParams["_cChvGr"	 ] := _cChvGr
-	// oJsParams["lCheck1"  ] := lCheck1
 
 	mv_par60 := oJsParams:ToJson()
 
@@ -384,7 +383,7 @@ Return
 ±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
 ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
 */
-Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvBar,_cChvRFor)
+Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod)
 	Local _cQuery   := ""
 	Local _cLegenda
 	Local cAlias      := ""
@@ -392,17 +391,21 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 	Local _xcChvGr    := ""
 	Local _xcDesc     := ""
 	Local _xcChvFab   := ""
-	Local _xcChvCA    := ""
+	Local _xcChvMod   := ""
   	Local _cDescAux   := ""
+	Local cPrc2UM	  := ""
+	Local nPrc2UM	  := 0
+	Local lFindProd   := .F.
+	Local lFindBar    := .F.
 
 	Default lInicio    := .F.
 	Default _cChave    := Space(TamSx3("B1_COD")[1])
 	Default _cChvBar   := Space(TamSx3("B1_CODBAR")[1])
-	Default _cChvRFor  := Space(TamSx3("A5_CODPRF")[1])
+	Default _cChvRFor  := Space(TamSx3("B1_XREFFOR")[1])
 	Default _cChvGr    := Space(TamSx3("B1_GRUPO")[1])
 	Default _cDesc     := Space(TamSx3("B1_DESC")[1])
 	Default _cChvFab   := Space(TamSx3("B1_FABRIC")[1])
-	Default _cChvCA    := Space(TamSx3("B1_XCA")[1])
+	Default _cChvMod   := Space(TamSx3("B1_MODELO")[1])
 
 	_xcChave   := Upper(AllTrim( StrTran(_cChave ,"'","") ))
 	_xcChvBar  := Upper(AllTrim( StrTran(_cChvBar,"'","") ))
@@ -410,78 +413,78 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 	_xcChvGr   := Upper(AllTrim( StrTran(_cChvGr ,"'","") ))
 	_xcDesc    := Upper(AllTrim( StrTran(_cDesc  ,"'","''") ))
 	_xcChvFab  := Upper(AllTrim( StrTran(_cChvFab,"'","") ))
-	_xcChvCA   := Upper(AllTrim( StrTran(_cChvCA ,"'","") ))
+	_XcChvMod  := Upper(AllTrim( StrTran(_cChvMod ,"'","") ))
 
 	// mv_par60 := _cDesc  // Fernando - guarda o conteudo digitado no campo utilizado para pesquisa
-	fSetPar(_cDesc, _cChave, _cChvBar, _cChvRFor, _cChvFab, _cChvCA, _cChvGr) //, lCheck1)
+	fSetPar(_cDesc, _cChave, _cChvBar, _cChvRFor, _cChvFab, _cChvGr,_cChvMod) //, lCheck1)
 
 	// Zera o array com os dados dos produtos
 	_aProduto := {}
 
 	// Cria tabela temporaria com os dados dos produtos 
 
+	If !Empty(_xcChave)
+		DbSelectArea("SB1")
+		SB1->( DbSetOrder(1) )
+		If DbSeek( FWxFilial("SB1")+_xcChave ) 
+			lFindProd := .T.
+		EndIf
+		SB1->(DbCloseArea())
+	ElseIf !Empty(_xcChvBar)
+		DbSelectArea("SB1")
+		SB1->( DbSetOrder(5) )
+		If DbSeek( FWxFilial("SB1")+_xcChvBar ) 
+			lFindBar := .T.
+		EndIf
+		SB1->(DbCloseArea())
+	EndIf
+
 	_cQuery := " SELECT DS.* FROM ( " + CRLF
 
-	If lCheck1 .Or. lInicio // caso seja marcado o checkbox para consultar, inclusive, produtos sem estoque ou se for o início da pesquisa
+	If lCheck1 .Or. lInicio .Or. lFindProd .Or. lFindBar // caso seja marcado o checkbox para consultar, inclusive, produtos sem estoque ou se for o início da pesquisa
 
 		_cQuery += " SELECT " + CRLF
 		_cQuery += "     B1_FILIAL, B1_COD CODIGO, B1_DESC DESCRICAO, B1_UM UNIDADE, B1_SEGUM UNID2, B1_MODELO, B1_PRV1 AS PRECOV, B1_CUSTD AS CUSTO " + CRLF
 		_cQuery += "     , B1_GRUPO GRUPO, B1_CODBAR CODBAR, B1_MSBLQL, B1_CONV CONV, B1_TIPCONV TPCONV, B1_GRTRIB GRTRIB " + CRLF
-		_cQuery += "     , B1_TIPO AS TIPO, B1_XCA AS CA, B1_FABRIC MARCA " + CRLF
+		_cQuery += "     , B1_TIPO AS TIPO, B1_FABRIC MARCA, B1_XREFFOR AS REFFOR " + CRLF
 		_cQuery += " FROM " + CRLF
 		_cQuery += "     "+RetSqlName("SB1")+" SB1 " + CRLF
-		IF !Empty(_xcChvRFor)
-		_cQuery += "     INNER JOIN "+RetSqlName("SA5")+" SA5 ON SA5.D_E_L_E_T_ = ' ' AND SA5.A5_FILIAL = "+ValToSql(FWxFilial("SA5")) + CRLF
-		_cQuery += "         AND A5_CODPRF = "+ValToSql(_xcChvRFor)+" AND SA5.A5_PRODUTO = SB1.B1_COD " + CRLF
-		EndIf
 		_cQuery += " WHERE " + CRLF
-		_cQuery += "     SB1.D_E_L_E_T_ = ' ' " + CRLF
+		_cQuery += "     SB1.D_E_L_E_T_ <> '*' " + CRLF
 		_cQuery += "     AND B1_FILIAL = "+ValToSql(FWxFilial('SB1')) + CRLF
 		_cQuery += "     AND B1_MSBLQL <> '1' " + CRLF
-		// If fTipoDb() == "ORACLE"
-		// 	_cQuery += "     AND ( LENGTH(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
-		// Else
-		// 	_cQuery += "     AND ( LEN(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
-		// EndIf
 
 	Else
 
 		_cQuery += " SELECT DISTINCT " + CRLF
 		_cQuery += "     B1_FILIAL, B1_COD CODIGO, B1_DESC DESCRICAO, B1_UM UNIDADE, B1_SEGUM UNID2, B1_MODELO, B1_PRV1 AS PRECOV, B1_CUSTD AS CUSTO " + CRLF
 		_cQuery += "     , B1_GRUPO GRUPO, B1_CODBAR CODBAR, B1_MSBLQL, B1_CONV CONV, B1_TIPCONV TPCONV, B1_GRTRIB GRTRIB " + CRLF
-		_cQuery += "     , B1_TIPO AS TIPO, B1_XCA AS CA, B1_FABRIC MARCA " + CRLF
+		_cQuery += "     , B1_TIPO AS TIPO, B1_FABRIC MARCA, B1_XREFFOR AS REFFOR " + CRLF
 		_cQuery += " FROM " + CRLF
 		_cQuery += "     "+RetSqlName("SB1")+" SB1 " + CRLF
-		IF !Empty(_xcChvRFor)
-		_cQuery += "     INNER JOIN "+RetSqlName("SA5")+" SA5 ON SA5.D_E_L_E_T_ = ' ' AND SA5.A5_FILIAL = "+ValToSql(FWxFilial("SA5")) + CRLF
-		_cQuery += "         AND A5_CODPRF = "+ValToSql(_xcChvRFor)+" AND SA5.A5_PRODUTO = SB1.B1_COD " + CRLF
-		EndIf
-		_cQuery += "     LEFT JOIN  "+RetSqlName("SB2")+" SB2 ON SB2.D_E_L_E_T_ = ' ' AND SB2.B2_COD = SB1.B1_COD " + CRLF
+		_cQuery += "     LEFT JOIN  "+RetSqlName("SB2")+" SB2 ON SB2.D_E_L_E_T_ <> '*' AND SB2.B2_COD = SB1.B1_COD " + CRLF
 		_cQuery += " WHERE " + CRLF
-		_cQuery += "     SB1.D_E_L_E_T_ = ' ' " + CRLF
+		_cQuery += "     SB1.D_E_L_E_T_ <> '*' " + CRLF
 		_cQuery += "     AND B1_FILIAL = "+ValToSql(FWxFilial('SB1')) + CRLF
 		_cQuery += "     AND B1_MSBLQL <> '1' " + CRLF
 		_cQuery += "     AND COALESCE(SB2.D_E_L_E_T_,' ') = ' ' " + CRLF
 		_cQuery += "     AND ( SB2.B2_FILIAL IS NOT NULL AND ( SB2.B2_QATU - SB2.B2_RESERVA - SB2.B2_QEMP ) >= 1 ) " + CRLF
-		// If fTipoDb() == "ORACLE"
-		// 	_cQuery += "     AND ( LENGTH(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
-		// Else
-		// 	_cQuery += "     AND ( LEN(RTRIM(B1_COD)) = 6 AND B1_COD LIKE 'P_____%' ) " + CRLF // Retirar antes de entrar em produção
-		// EndIf
 
 	EndIf
 
 	//codigo do produto/barras
-	If lInicio
-		_cQuery += "     AND (B1_COD   = '"+_xcChave+"' ) "
+	If lInicio .Or. lFindProd
+		_cQuery += "     AND (B1_COD = '"+_xcChave+"' ) "
+	ElseIf lFindBar
+		_cQuery += "     AND (B1_CODBAR = '"+_xcChvBar+"' ) "
 	Else
 		If !Empty(_xcChave) .Or. !Empty(_xcChvBar)
 			If Empty(_xcChvBar)
-				_cQuery += "     AND (B1_COD   LIKE '%"+_xcChave+"%' ) "
+				_cQuery += "     AND (B1_COD LIKE '%"+_xcChave+"%' ) "
 			ElseIf Empty(_xcChave)
 				_cQuery += "     AND (B1_CODBAR LIKE '%"+_xcChvBar+"%' ) "
 			Else
-				_cQuery += "     AND (B1_COD   LIKE '%"+_xcChave+"%' OR B1_CODBAR LIKE '%"+_xcChvBar+"%' ) "
+				_cQuery += "     AND (B1_COD LIKE '%"+_xcChave+"%' OR B1_CODBAR LIKE '%"+_xcChvBar+"%' ) "
 			EndIf
 		EndIf
 
@@ -492,22 +495,24 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 			EndDo
 			_cDescAux := StrTran(_cDescAux,"%","\%")
 			_cDescAux := StrTran(_cDescAux," ","%")
-			_cQuery += "     AND ( B1_DESC    LIKE '%"+_cDescAux+"%' ) "
+			_cQuery += "     AND ( B1_DESC LIKE '%"+_cDescAux+"%' ) "
 		EndIf
 
 		//GRUPO
 		IF !Empty(_xcChvGr)
-			_cQuery += "     AND (B1_GRUPO   LIKE '%"+_xcChvGr+"%' ) "
+		_cQuery += "     AND ( B1_GRUPO LIKE '%"+_xcChvGr+"%' ) "
 		EndIf
 
 		//FABRICANTE/MARCA
 		IF !Empty(_xcChvFab)
-			_cQuery += "     AND (B1_FABRIC   LIKE '%"+_xcChvFab+"%' ) "
+		_cQuery += "     AND ( B1_FABRIC LIKE '%"+_xcChvFab+"%' ) "
 		EndIf
 
-		//Certificado de Aprovação - EPI - MTE
-		IF !Empty(_xcChvCA)
-			_cQuery += "     AND (B1_XCA   = "+ValToSql(_xcChvCA)+" ) "
+		IF !Empty(_xcChvRFor)
+		_cQuery += "     AND ( B1_XREFFOR LIKE '%"+_xcChvRFor+"%' ) "
+		EndIf
+		IF !Empty(_xcChvMod)
+		_cQuery += "     AND ( B1_MODELO LIKE '%"+_xcChvMod+"%' ) "
 		EndIf
 
 	EndIf
@@ -519,8 +524,6 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 	//memowrit("c:\temp\cons_prod.txt",_cQuery)
 	// dbUseArea(.T.,"TOPCONN",TCGENQRY(,,_cQuery),"QRY",.F.,.T.)
 	cAlias := MPSysOpenQuery(_cQuery)
-
-	_PRC2UM:= 0
 
 	//	(DbSelectArea("SE4"))
 	// SE4->(DbSetOrder(1))
@@ -544,22 +547,10 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 		//		_cLegenda	:= "BR_VERMELHO" //"BR_PRETO"
 		//	ENDIF
 
-		//	dbSelectArea("QRY")
-		//	If (cAlias)->TPCONV = 'D'
-		//_PRC2UM:= (cAlias)->PRC* (cAlias)->CONV //CONVUM((cAlias)->CODIGO,1,0,2)
-		_PRC2UM:= 0
-		//		_PRC2UM:= CONVUM((cAlias)->CODIGO,(cAlias)->PRC,0,2)
-		//		_PRC2UM:= CONVUM((cAlias)->CODIGO,(cAlias)->PRC,0,2)
-		//	Else
-		//		_PRC2UM:= (cAlias)->PRC/(cAlias)->CONV 
-		//	EndIf
-		//	AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO,(cAlias)->UNIDADE,(cAlias)->UNID2,(cAlias)->GRUPO,Transform((cAlias)->PRC,"@E 999,999.99"), (cAlias)->B1_X_REFER } )
-
-
-		IF UPPER(FUNNAME()) == "LOJA701"
+		IF Upper(FUNNAME()) == "LOJA701"
 			_CTABELA := M->LR_TABELA
 		ELSE                            
-			IF UPPER(FUNNAME()) == "MATA410"
+			IF Upper(FUNNAME()) == "MATA410"
 				_CTABELA := M->C5_TABELA	
 			ELSE
 				_CTABELA := M->L1_TABELA			
@@ -578,15 +569,26 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 			_cLegenda	:= "BR_VERDE"		
 		// EndIf
 
-		// IF CNIVEL > 5 
-			// _CCUSTO := 0//POSICIONE("SB1",1,FWxFilial("SB1")+(cAlias)->CODIGO,"B1_CUSTD")
-			// AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO,(cAlias)->UNIDADE,Transform(_npreco,"@E 999,999.99"),Transform(_CCUSTO,"@E 999,999.99"),(cAlias)->GRUPO,(cAlias)->SUBGRUPO,(cAlias)->CLASSE,(cAlias)->FABRIC,(cAlias)->GRTRIB, (cAlias)->B1_MODELO } )
-			_CCUSTO := (cAlias)->CUSTO //POSICIONE("SB1",1,FWxFilial("SB1")+(cAlias)->CODIGO,"B1_CUSTD")
-  		// AAdd(_aTitulos, {"",         "Codigo",         "Descrição",         "Tipo",         "UM",              "Preço",                            "Custo",                            "Marca",         "Grupo",         "CA",         "Grupo Trib.",    "Modelo"})
-			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO, (cAlias)->UNIDADE, Transform(_npreco,"@E 999,999.99"), Transform(_CCUSTO,"@E 999,999.99"), (cAlias)->MARCA, (cAlias)->GRUPO, (cAlias)->CA, (cAlias)->GRTRIB, (cAlias)->B1_MODELO } )
-		// ELSE
-			// AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO,(cAlias)->UNIDADE,Transform(_npreco,"@E 999,999.99"),(cAlias)->GRUPO,(cAlias)->SUBGRUPO,(cAlias)->CLASSE,(cAlias)->FABRIC,(cAlias)->GRTRIB, (cAlias)->B1_MODELO } )
-		// ENDIF
+		cPrc2UM := ""
+		nPrc2UM := 0
+
+		If !Empty((cAlias)->UNID2) .And. (cAlias)->CONV > 0
+			If (cAlias)->TPCONV = 'D'
+				nPrc2UM := Round((cAlias)->PRECOV / (cAlias)->CONV,2)
+			ElseIf (cAlias)->TPCONV = 'M'
+				nPrc2UM := Round((cAlias)->PRECOV * (cAlias)->CONV,2)
+			EndIf
+			cPrc2UM := Transform(nPrc2UM,"@E 999,999.99")
+		EndIf
+
+		If lMostraCusto
+			_CCUSTO := (cAlias)->CUSTO
+			// AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Tipo"        , "UM"             , "Preço"                           , "2a.UM"        , "Preço 2a.UM", "Custo"                           , "Ref.Fornecedor", "Marca"        , "Modelo"           , "Gr Trib"       , "Grupo"         } )
+			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO, (cAlias)->UNIDADE, Transform(_npreco,"@E 999,999.99"), (cAlias)->UNID2, cPrc2UM      , Transform(_CCUSTO,"@E 999,999.99"), (cAlias)->REFFOR, (cAlias)->MARCA, (cAlias)->B1_MODELO, (cAlias)->GRTRIB, (cAlias)->GRUPO } )
+		Else
+			// AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Tipo"        , "UM"             , "Preço"                           , "2a.UM"        , "Preço 2a.UM", "Ref.Fornecedor", "Marca"        , "Modelo"           , "Gr Trib"       , "Grupo"         } )
+			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO, (cAlias)->UNIDADE, Transform(_npreco,"@E 999,999.99"), (cAlias)->UNID2, cPrc2UM      , (cAlias)->REFFOR, (cAlias)->MARCA, (cAlias)->B1_MODELO, (cAlias)->GRTRIB, (cAlias)->GRUPO } )
+		EndIf
 
 		(cAlias)->( dbSkip() )
 
@@ -596,17 +598,17 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 	_oListBox:nAT := 1 //teste
 
 	If !(Len(_aProduto) > 0)
-		_aProduto := {} //adicionado leonardo dia 04/01 - melhorar seguranca 
-		// IF CNIVEL > 5
-			AAdd(_aProduto, {"","","","","","","","","","","",""} )
-		// ELSE
-		// 	AAdd(_aProduto, {"","","","","","","","","","","","",""} )
-		// ENDIF
+		_aProduto := {} 
+		If lMostraCusto
+			AAdd(_aProduto, {"","","","","","","","","","","","","",""} )
+		Else
+			AAdd(_aProduto, {"","","","","","","","","","","","",""} )
+		EndIf
 	EndIf             
 
 	_bAux := _oListBox:bLine
 	_oListBox:SetArray(_aProduto)
-	// IF CNIVEL > 5
+	If lMostraCusto
 		_oListBox:bLine := { || { LoadBitmap(GetResources()    ,;
 		_aProduto[_oListBox:nAT][01]),;
 		_aProduto[_oListBox:nAT][02] ,;
@@ -618,22 +620,26 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvCA,_cChvB
 		_aProduto[_oListBox:nAT][08] ,;
 		_aProduto[_oListBox:nAT][09] ,;
 		_aProduto[_oListBox:nAT][10], ;
-		_aProduto[_oListBox:nAT][11] } }
-	// ELSE
-	// 	_oListBox:bLine := { || { LoadBitmap(GetResources()    ,;
-	// 	_aProduto[_oListBox:nAT][01]),;
-	// 	_aProduto[_oListBox:nAT][02] ,;
-	// 	_aProduto[_oListBox:nAT][03] ,;
-	// 	_aProduto[_oListBox:nAT][04] ,;
-	// 	_aProduto[_oListBox:nAT][05] ,;
-	// 	_aProduto[_oListBox:nAT][06] ,;
-	// 	_aProduto[_oListBox:nAT][07] ,;
-	// 	_aProduto[_oListBox:nAT][08] ,;
-	// 	_aProduto[_oListBox:nAT][09] ,;
-	// 	_aProduto[_oListBox:nAT][10], ;
-	// 	_aProduto[_oListBox:nAT][11], ;
-	// 	_aProduto[_oListBox:nAT][12] } }
-	// ENDIF 
+		_aProduto[_oListBox:nAT][11], ;
+		_aProduto[_oListBox:nAT][12], ;
+		_aProduto[_oListBox:nAT][13], ;
+		_aProduto[_oListBox:nAT][14] } }
+	Else
+		_oListBox:bLine := { || { LoadBitmap(GetResources()    ,;
+		_aProduto[_oListBox:nAT][01]),;
+		_aProduto[_oListBox:nAT][02] ,;
+		_aProduto[_oListBox:nAT][03] ,;
+		_aProduto[_oListBox:nAT][04] ,;
+		_aProduto[_oListBox:nAT][05] ,;
+		_aProduto[_oListBox:nAT][06] ,;
+		_aProduto[_oListBox:nAT][07] ,;
+		_aProduto[_oListBox:nAT][08] ,;
+		_aProduto[_oListBox:nAT][09] ,;
+		_aProduto[_oListBox:nAT][10], ;
+		_aProduto[_oListBox:nAT][11], ;
+		_aProduto[_oListBox:nAT][12], ;
+		_aProduto[_oListBox:nAT][13] } }
+	EndIf
 
 	_oListBox:Refresh()
 
