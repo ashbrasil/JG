@@ -358,7 +358,7 @@ Static Function ImpProd(oPrinter, nLin, nPag, _nMaxLin)
 		// Referência do fornecedor
 		oPrinter:Say(nLin, ;
 			_nColInicio + nProxCol, ;
-			PadR(Posicione("SA5",2,xFilial('SA5')+CB8->CB8_PROD,'A5_CODPRF'), 18), ;
+			SB1->B1_XREFFOR, ;
 			oFont11:oFont)
 
 		nProxCol += 65

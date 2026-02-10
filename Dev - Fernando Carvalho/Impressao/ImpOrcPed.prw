@@ -123,8 +123,8 @@ Retorna o caminho do arquivo de logo conforme empresa.
 Static Function GetLogo()
 
 	Local _cLogo      := ""
-	Local _cNome      := "logo"
-	Local _cExt       := ".jpg"
+	Local _cNome      := "cabec"
+	Local _cExt       := ".png"
 	Local _cStartPath := GetSrvProfString("Startpath","")
 
 	_cStartPath := _cStartPath + "imagens/"
@@ -139,6 +139,7 @@ Static Function GetLogo()
 
 Return _cLogo
 
+
 /*/{Protheus.doc} ImpLogo
 Imprime logo e dados da empresa (CNPJ, endereço, etc).
 @type static function
@@ -146,31 +147,14 @@ Imprime logo e dados da empresa (CNPJ, endereço, etc).
 @since 02/02/2026
 /*/
 Static Function ImpLogo(oPrinter, nLin, nPag)
-	Local nColPos	:= _nColInicio
+	Local nColPos	:= 612
+    Local nColAlt	:= 140
 	//LOGO
-	oPrinter:SayBitmap(nLin, _nLimPaCol - 100, GetLogo(),100,100) 
+	oPrinter:SayBitmap(0, 0, GetLogo(),nColPos,nColAlt) 
 	
 	//EMPRESA
-	nLin += 10
-	oPrinter:SayAlign(nLin,nColPos, SM0->M0_NOMECOM, oFont28N:oFont, 240, 20, COR_VERMELHO)
+	nLin += 135
 	
-	nLin += 40
-	SayLabelValue( oPrinter, nLin, nColPos + 05, "CNPJ:", Transform(SM0->M0_CGC, "@R 99.999.999/9999-99") )
-
-	nLin += _nProxLin
-	SayLabelValue( oPrinter, nLin, nColPos + 05, "Endereço:", SM0->M0_ENDCOB )
-
-	nLin += _nProxLin
-	SayLabelValue( oPrinter, nLin, nColPos + 05, "Bairro:", SM0->M0_BAIRCOB )
-
-	nLin += _nProxLin
-	SayLabelValue( oPrinter, nLin, nColPos + 05, "Cidade:", SM0->M0_CIDCOB )
-	
-	nLin += _nProxLin
-	SayLabelValue( oPrinter, nLin, nColPos + 05, "CEP:", Transform(SM0->M0_CEPCOB, "@R 99999-999") )
-
-	nLin += 05
-	oPrinter:Line(nLin,_nColIniPag,nLin,_nLimPaCol)
 	
 Return
 
@@ -198,16 +182,19 @@ Static Function ImpCabCli(oPrinter, nLin, nPag)
         cVendedor := &("SC5->C5_VEND1")
         cCondPag  := &("SC5->C5_CONDPAG")
         cTpFrete  := &("SC5->C5_TPFRETE")
+        dData     := &("SC5->C5_EMISSAO")
     Elseif (cAliasImp == "SCJ")
         cPedido   := &("SCJ->CJ_NUM")
         cVendedor := ''
         cCondPag  := &("SCJ->CJ_CONDPAG")
         cTpFrete  := &("SCJ->CJ_TPFRETE")
+        dData     := &("SCJ->CJ_EMISSAO")
     ElseIf (cAliasImp == "SL1")
         cPedido   := &("SL1->L1_NUM")
         cVendedor := &("SL1->L1_VEND")
         cCondPag  := &("SL1->L1_CONDPG")     
         cTpFrete  := &("SL1->L1_TPFRET")
+        dData     := &("SL1->L1_EMISSAO")
     EndIf
     // Fundo do título
     oPrinter:FillRect( {nLin, _nColIniPag, nLin + 18, _nLimPaCol}, oBrush1,'-2')
@@ -215,6 +202,15 @@ Static Function ImpCabCli(oPrinter, nLin, nPag)
         nLin , ;
         _nColIniPag +230, ;
         cTipoPed +" Nº: "+ AllTrim(cPedido), ;
+        oFont14N:oFont, ;
+        _nLimPaCol - _nColIniPag, ;
+        18, ;
+        COR_PRETO )
+
+         oPrinter:SayAlign( ;
+        nLin , ;
+        _nColIniPag +440, ;
+        "Emissão:" + Dtoc(dData), ;
         oFont14N:oFont, ;
         _nLimPaCol - _nColIniPag, ;
         18, ;
@@ -260,7 +256,7 @@ Imprime cabeçalho da tabela de produtos com colunas.
 /*/
 Static Function ImpCabProd(oPrinter, nLin, nPag)
 	Local nProxCol	:= 0
-
+    
 	//TITULO DOS PRODUTOS
     nLin += 15
 	oPrinter:Say(nLin,270	,"PRODUTOS",oFont12N:oFont)
@@ -273,32 +269,38 @@ Static Function ImpCabProd(oPrinter, nLin, nPag)
 		oPrinter:Say(nLin,_nColInicio + nProxCol,"Foto"				,oFont11N:oFont)
         nProxCol += 40
 	EndIf	
-	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Codigo"			,oFont11N:oFont)
-	nProxCol += 60
-	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Produto"			,oFont11N:oFont)
-	nProxCol += 130
-	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Und."				,oFont11N:oFont)
-	nProxCol += 40
-	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Quantidade"		,oFont11N:oFont)
-	nProxCol += 60
-	oPrinter:Say(nLin,_nColInicio + nProxCol	,"NCM"			,oFont11N:oFont)
-	
-    If !(cAliasImp == "SL1")
-        nProxCol += 30
-        oPrinter:Say(nLin,_nColInicio + nProxCol	,"ALIQ. ICMS"		,oFont11N:oFont)
-	EndIf
 
-    nProxCol += 50
-	oPrinter:Say(nLin,_nColInicio + nProxCol	,"ICMS-ST"			,oFont11N:oFont)
-	nProxCol += 40
-	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Valor"	,oFont11N:oFont)
-	If (cAliasImp == "SL1")
-        nProxCol += 60
-        oPrinter:Say(nLin,_nColInicio + nProxCol	,"Desconto"		,oFont11N:oFont)
-	EndIf
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Codigo"			,oFont11N:oFont)
+	
+    nProxCol += 40
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Produto"			,oFont11N:oFont)
+	
+    nProxCol += 130
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Marca"				,oFont11N:oFont)
+	
+    nProxCol += 40
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Referencia"		,oFont11N:oFont)
+	
     nProxCol += 60
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"NCM"			,oFont11N:oFont)
+
+    
+    nProxCol += 45
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Quantidade"		,oFont11N:oFont)
+	
+    nProxCol += 60
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"UN"	,oFont11N:oFont)
+
+    nProxCol += 30
+	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Valor"	,oFont11N:oFont)
+	
+    nProxCol += 45
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Total"		,oFont11N:oFont)
-	nLin += 05
+	
+    nProxCol += 45
+    oPrinter:Say(nLin,_nColInicio + nProxCol	,"ICMS"		,oFont11N:oFont)
+
+	 nLin += 05
 	oPrinter:Line(nLin,_nColIniPag,nLin,_nLimPaCol)
 
 Return
@@ -320,7 +322,6 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
     Local nDesc     := 0
     Local nTotal    := 0
     Local nTotalG   := 0
-    Local nTotalI   := 0
     Local cTes      := ""
     Local aLinhas   := {}
     Local cTpFrete  := ""
@@ -364,7 +365,7 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
 
     While !(cAliasPro)->(Eof()) .And. &(cChavePed)
         nItem++
-        
+
         If (cAliasImp == "SC5")
             nPreco   := &("SC6->C6_PRCVEN")
             nDesc    := &("SC6->C6_VALDESC")
@@ -435,10 +436,11 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
             nLin += _nProxLin   
         EndIf
         
-       
+       // Código do produto
         oPrinter:Say(nLin, nCol, cProduto, oFont11:oFont)
 
-        nCol += 50
+        // Descrição do produto
+        nCol += 40
         aLinhas := QuebraTexto(SB1->B1_DESC, _nTamMaxPr)
 		// Produto (linha 1)
 		oPrinter:Say(nLin,nCol, aLinhas[1], oFont11:oFont)
@@ -448,61 +450,60 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
 			oPrinter:Say(nLin + _nProxLin, nCol, aLinhas[2], oFont11:oFont)
 		EndIf
 
-        nCol += 140
-        oPrinter:Say(nLin, nCol, SB1->B1_UM, oFont11:oFont)
+        // Marca
+        nCol += 130
+        oPrinter:Say(nLin, nCol, SB1->B1_FABRIC, oFont11:oFont)
 
+        // Referência
         nCol += 40
-        oPrinter:Say(nLin, nCol, Transform(nQuant, X3Picture("C6_QTDVEN")), oFont11:oFont)
+        oPrinter:Say(nLin, nCol, SB1->B1_XREFFOR, oFont11:oFont)
 
-        nCol += 50
+        // NCM
+        nCol += 60
         oPrinter:Say( nLin, nCol, SB1->B1_POSIPI, oFont11:oFont )
 
-        If !(cAliasImp == "SL1")
-            nCol += 40
-            oPrinter:Say( nLin, nCol, Transform(nAliqIcm,  "@E 999,999.99"), oFont11:oFont)
-        EndIf
+        // Quantidade
+        nCol += 45  
+        oPrinter:Say(nLin, nCol, Transform(nQuant, X3Picture("C6_QTDVEN")), oFont11:oFont)
 
-        nCol += 40
-        oPrinter:Say( nLin, nCol, Transform(nICMS,  "@E 999,999.99"), oFont11:oFont)
-
-        nCol += 40
-        oPrinter:Say( nLin, nCol, Transform(nPreco, "@E 999,999.99"), oFont11:oFont)
-        If (cAliasImp == "SL1")            
-            nCol += 60
-            oPrinter:Say( nLin, nCol, Transform(nDesc, "@E 999,999.99"), oFont11:oFont)
-        EndIf        
+        // Unidade
         nCol += 60
+        oPrinter:Say( nLin, nCol, SB1->B1_UM, oFont11:oFont)
+
+        // Valor
+        nCol += 30
+        oPrinter:Say( nLin, nCol, Transform(nPreco, "@E 999,999.99"), oFont11:oFont)
+
+        // Total
+        nCol += 45
         oPrinter:Say( nLin, nCol, Transform(nTotal, "@E 999,999.99"), oFont11:oFont)
+
+        // ICMS
+        nCol += 45
+        oPrinter:Say( nLin, nCol, Transform(nAliqIcm,  "@E 999,999.99"), oFont11:oFont)
 
         nLin += _nProxLin
         If Len(aLinhas) > 1
-			nLin += _nProxLin
+			//nLin += _nProxLin
 		EndIf
         nTotalG += nTotal
-        nTotalI += nTotal + nICMS
+        
         (cAliasPro)->(DbSkip())
+         nLin += 10
+	    oPrinter:Line(nLin,_nColIniPag,nLin,_nLimPaCol)
 
     EndDo
-    nLin += 05
-	oPrinter:Line(nLin,_nColIniPag,nLin,_nLimPaCol)
+   
     
+  //  nLIn += _nProxLin
+   // oPrinter:Say( nLin, _nSegundaCol,"TOTAL SEM IMPOSTO: R$ " + Transform(nTotalG, "@E 999,999.99"), oFont11:oFont)
     nLIn += _nProxLin
-    oPrinter:Say( nLin, _nSegundaCol,"TOTAL SEM IMPOSTO: R$ " + Transform(nTotalG, "@E 999,999.99"), oFont11:oFont)
-    nLIn += _nProxLin
-    oPrinter:Say( nLin, _nSegundaCol,"TOTAL COM IMPOSTO: R$ " + Transform(nTotalI, "@E 999,999.99"), oFont11:oFont)
+    oPrinter:Say( nLin, _nSegundaCol,"VALOR TOTAL: R$ " + Transform(nTotalG, "@E 999,999.99"), oFont11:oFont)
     nLin += 05
 	oPrinter:Line(nLin,_nColIniPag,nLin,_nLimPaCol)
 Return
 
-/*/{Protheus.doc} ImpImposto
-Função reservada para impressão de detalhes de impostos.
-@type static function
-@author
-@since 02/02/2026
-/*/
-Static Function ImpImposto()
 
-Return
 
 /*/{Protheus.doc} ImpObs
 Imprime observações do pedido quebradas em múltiplas linhas.
@@ -534,10 +535,28 @@ Imprime rodapé com número da página.
 @since 02/02/2026
 /*/
 Static Function ImpRod(oPrinter, nPag)
+    Local nColPos	    := 612
+    Local nColAlt	    := 20
+	Local _cNome        := "rodape"
+	Local _cExt         := ".png"
+	Local _cStartPath   := GetSrvProfString("Startpath","")
+
+	_cStartPath := _cStartPath + "imagens/"
+
+	If File(_cStartPath + _cNome + Alltrim(cEmpAnt) + _cExt)
+		_cRodape := (_cStartPath + _cNome + Alltrim(cEmpAnt) + _cExt)
+
+	ElseIf File(_cStartPath + _cNome + _cExt)
+		_cRodape := (_cStartPath + _cNome + _cExt)
+
+	EndIf
 
 	//RODAPE
-	oPrinter:Line(768,_nColIniPag,768,_nLimPaCol)
-	oPrinter:Say(780,280,"Página " + StrZero(nPag,2))    
+//	oPrinter:Line(748,_nColIniPag,748,_nLimPaCol)
+	oPrinter:Say(760,280,"Página " + StrZero(nPag,2))    
+    //LOGO
+	oPrinter:SayBitmap(768, 0, _cRodape,nColPos,nColAlt) 
+	
 Return
 
 /*/{Protheus.doc} SayLabelValue
@@ -572,15 +591,19 @@ Static Function GetFoto()
     Local nX            := 1
 
 
-    cBmpPict := Upper( AllTrim( SB1->B1_BITMAP ) )
+    cBmpPict := Upper(AllTrim(SB1->B1_BITMAP))
     For nX := 1 To Len(aExtensao)
         cExtensao := aExtensao[nX]
-        If File(cPathPict+cBmpPict+cExtensao)
-            cPathImage := cPathPict+cBmpPict+cExtensao
-            Exit
-        EndIf
+        If !Empty( cBmpPict := Upper( AllTrim( SB1->B1_BITMAP ) ) )
+			If RepExtract(cBmpPict,cPathPict+cBmpPict)
+				If File(cPathPict+cBmpPict+cExtensao)
+                    cPathImage := cPathPict+cBmpPict+cExtensao
+                    Exit
+                EndIf
+            EndIf
+        EndIf    
     Next nX
-Return cPathImage
+Return UPPER(cPathImage)
 
 /*/{Protheus.doc} xImposto
 Inicializa o cálculo fiscal para o cliente.
