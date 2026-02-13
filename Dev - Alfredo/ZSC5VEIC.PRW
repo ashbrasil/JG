@@ -44,7 +44,8 @@ User Function ZSC5VEIC()
     // TELA
     // ==============================
 
-    DEFINE MSDIALOG oDlg TITLE "Informar dados do Pedido (SC5)" FROM 0,0 TO 320,900 PIXEL
+    // DEFINE MSDIALOG oDlg TITLE "Informar dados do Pedido de venda (SC5)" FROM 0,0 TO 480,1350 PIXEL
+    DEFINE MSDIALOG oDlg TITLE "Informar dados do Pedido de venda (SC5)" FROM 0,0 TO 480,510 PIXEL
 
         @ 15, 10 SAY "Peso Líquido (C5_PESOL):" OF oDlg PIXEL
         @ 28, 10 GET nPesol PICTURE "@E 9,999,999.9999" SIZE 240, 14 OF oDlg PIXEL
@@ -58,10 +59,10 @@ User Function ZSC5VEIC()
         @ 135, 10 SAY "Espécie (C5_ESPECI1):" OF oDlg PIXEL
         @ 148, 10 GET cEsp1 PICTURE "@S10" SIZE 200, 14 OF oDlg PIXEL
 
-        @ 210, 520 BUTTON "OK" SIZE 90, 20 OF oDlg PIXEL ;
+        @ 195, 40 BUTTON "OK" SIZE 90, 20 OF oDlg PIXEL ;
             ACTION ( lOk := .T., oDlg:End() )
 
-        @ 210, 625 BUTTON "Cancelar" SIZE 90, 20 OF oDlg PIXEL ;
+        @ 195, 145 BUTTON "Cancelar" SIZE 90, 20 OF oDlg PIXEL ;
             ACTION ( lOk := .F., oDlg:End() )
 
     ACTIVATE MSDIALOG oDlg CENTERED

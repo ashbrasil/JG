@@ -57,7 +57,7 @@ User Function ZSF1VEIC()
     // TELA (MAIOR + LIMITA TAMANHO NO PICTURE)
     // ==============================
 
-    DEFINE MSDIALOG oDlg TITLE "Informar dados da SF1" FROM 0,0 TO 480,1350 PIXEL
+    DEFINE MSDIALOG oDlg TITLE "Informar dados da SF1" FROM 0,0 TO 480,510 PIXEL
 
         @ 15, 10 SAY "Chave (F1_CHVNFE):" OF oDlg PIXEL
         // @S44 limita e permite digitar
@@ -65,7 +65,7 @@ User Function ZSF1VEIC()
 
         @ 55, 10 SAY "Veículo (F1_VEICUL1):" OF oDlg PIXEL
         // @S6 limita e permite digitar
-        @ 68, 10 GET cVeic1 PICTURE "@S6" SIZE 140, 14 OF oDlg PIXEL
+        @ 68, 10 GET cVeic1 PICTURE "@S7" SIZE 140, 14 OF oDlg PIXEL
 
         @ 95, 10 SAY "Peso Bruto (F1_PBRUTO):" OF oDlg PIXEL
         @ 108, 10 GET nPBruto PICTURE "@E 9,999,999.9999" SIZE 220, 14 OF oDlg PIXEL
@@ -73,10 +73,10 @@ User Function ZSF1VEIC()
         @ 135, 10 SAY "Peso Líquido (F1_PLIQUI):" OF oDlg PIXEL
         @ 148, 10 GET nPLiqui PICTURE "@E 9,999,999.9999" SIZE 220, 14 OF oDlg PIXEL
 
-        @ 195, 430 BUTTON "OK" SIZE 90, 20 OF oDlg PIXEL ;
+        @ 195, 40 BUTTON "OK" SIZE 90, 20 OF oDlg PIXEL ;
             ACTION ( lOk := .T., oDlg:End() )
 
-        @ 195, 535 BUTTON "Cancelar" SIZE 90, 20 OF oDlg PIXEL ;
+        @ 195, 145 BUTTON "Cancelar" SIZE 90, 20 OF oDlg PIXEL ;
             ACTION ( lOk := .F., oDlg:End() )
 
     ACTIVATE MSDIALOG oDlg CENTERED
