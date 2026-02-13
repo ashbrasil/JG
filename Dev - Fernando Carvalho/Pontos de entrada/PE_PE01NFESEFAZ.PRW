@@ -23,9 +23,17 @@ User Function PE01NFESEFAZ()
 	Local nLoop			:= 1
 	
 	
-	For nLoop := 1 To Len(aParam[1,1])
-		aParam[1,nLoop,4] := AllTrim(aParam[1,nLoop,4]) + ' - Série: ' + AllTrim(aParam[1,nLoop,19])
+	For nLoop := 1 To Len(aParam[1])
+		aParam[1,nLoop,4] := AllTrim(aParam[1,nLoop,4]) + ' - Série: ' + AllTrim(aParam[1,nLoop,20])
+		
 	Next nLoop
+
+	//Informação adicional
+	aParam[2] += "Codigo Cliente: " +  aParam[5,7]+ " - " + aParam[5,8]
+	aParam[2] += " / "
+	aParam[2] += "Vendedor: " +  SF2->F2_VEND1 + " - " + AllTrim(POSICIONE("SA3",1,xFilial("SA3") + SF2->F2_VEND1, "A3_NOME"))
+	aParam[2] += " / "
+	aParam[2] += "Forma de pagamento: " +  SF2->F2_COND + " - " + AllTrim(POSICIONE("SE4",1,xFilial("SE4") + SF2->F2_COND, "E4_DESCRI"))
 
 	RestArea(aAreaSD2)
 	restArea(aArea)

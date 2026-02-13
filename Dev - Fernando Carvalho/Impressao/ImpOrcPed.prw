@@ -44,7 +44,7 @@ User Function ImpOrcPed()
 	Private _nProxLin		:= 12  // Próxima linha a ser impressa
 	Private _nSegundaCol	:= 390 // Número da segunda coluna
 	Private _nMaxLin		:= 740// Número máximo de linhas por página
-	Private _nTamMaxPr		:= 30  // Tamanho máximo do nome do produto
+	Private _nTamMaxPr		:= 25  // Tamanho máximo do nome do produto
 	Private _nTamMaxObs		:= 160 // Tamanho máximo da observação    
     Private cTipoPed        := ''
 
@@ -209,7 +209,7 @@ Static Function ImpCabCli(oPrinter, nLin, nPag)
 
          oPrinter:SayAlign( ;
         nLin , ;
-        _nColIniPag +440, ;
+        _nColIniPag +435, ;
         "Emissão:" + Dtoc(dData), ;
         oFont14N:oFont, ;
         _nLimPaCol - _nColIniPag, ;
@@ -275,13 +275,13 @@ Static Function ImpCabProd(oPrinter, nLin, nPag)
     nProxCol += 40
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Produto"			,oFont11N:oFont)
 	
-    nProxCol += 130
+    nProxCol += 120
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Marca"				,oFont11N:oFont)
 	
-    nProxCol += 40
+    nProxCol += 60
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"Referencia"		,oFont11N:oFont)
 	
-    nProxCol += 60
+    nProxCol += 50
 	oPrinter:Say(nLin,_nColInicio + nProxCol	,"NCM"			,oFont11N:oFont)
 
     
@@ -451,15 +451,16 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
 		EndIf
 
         // Marca
-        nCol += 130
-        oPrinter:Say(nLin, nCol, SB1->B1_FABRIC, oFont11:oFont)
+        nCol += 120
+        oPrinter:Say(nLin, nCol, SubStr(SB1->B1_FABRIC, 1, 10), oFont11:oFont)
 
         // Referência
-        nCol += 40
-        oPrinter:Say(nLin, nCol, SB1->B1_XREFFOR, oFont11:oFont)
+        nCol += 60
+        oPrinter:Say(nLin           , nCol, SubStr(SB1->B1_XREFFOR, 1, 10), oFont11:oFont)
+        oPrinter:Say(nLin+_nProxLin , nCol, SubStr(SB1->B1_XREFFOR, 11), oFont11:oFont)
 
         // NCM
-        nCol += 60
+        nCol += 50
         oPrinter:Say( nLin, nCol, SB1->B1_POSIPI, oFont11:oFont )
 
         // Quantidade
