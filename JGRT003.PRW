@@ -35,6 +35,7 @@ Local oSay3
 Local oSay4
 Local aButtons := {}
 Local _x
+Local bSetF5   := Nil
 
 Private _cRet     := ""
 Private _aCliente := {}
@@ -82,6 +83,7 @@ Static oDlg
     fWBrowse1()
     
     //Atalho F5
+	bSetF5 := SetKey( VK_F5 )
     SetKey( VK_F5,  {|| fBusca(cGet1,cGet2,cGet3,cGet4)  } )
   
   	If _cCodCli <> Nil
@@ -95,6 +97,8 @@ Static oDlg
 	EndIf
     
   ACTIVATE MSDIALOG oDlg ON INIT EnchoiceBar(oDlg, {|| PosCli(_aCliente[oWBrowse1:nAt,2],_aCliente[oWBrowse1:nAt,3]) , oDlg:END() }, {|| /*IIF(Empty(_cCodCli),PosCli("XXXXXXXXXX","",2),PosCli(_cCodCli)),*/ oDlg:END() },,aButtons)  CENTERED
+
+SetKey( VK_F5, bSetF5 ) // Restaura F5
 
 dbSelectArea("SA1")
 dbSetOrder(1)
