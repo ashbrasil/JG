@@ -38,6 +38,8 @@ User Function ZSC5VEIC()
 
     If Type("SC5->C5_ESPECI1") == "C"
         cEsp1 := SC5->C5_ESPECI1
+    Else
+        cEsp1 := Space(TamSX3("C5_ESPECI1")[1])
     EndIf
 
     // ==============================
@@ -57,7 +59,7 @@ User Function ZSC5VEIC()
         @ 108, 10 GET nVol1 PICTURE "@E 99999" SIZE 140, 14 OF oDlg PIXEL
 
         @ 135, 10 SAY "Espécie (C5_ESPECI1):" OF oDlg PIXEL
-        @ 148, 10 GET cEsp1 PICTURE "@S10" SIZE 200, 14 OF oDlg PIXEL
+        @ 148, 10 GET cEsp1 PICTURE "@X!" SIZE 200, 14 OF oDlg PIXEL
 
         @ 195, 40 BUTTON "OK" SIZE 90, 20 OF oDlg PIXEL ;
             ACTION ( lOk := .T., oDlg:End() )
@@ -73,7 +75,7 @@ User Function ZSC5VEIC()
     EndIf
 
     // Segurança extra
-    cEsp1 := Left(AllTrim(cEsp1), 10)
+    cEsp1 := Left(AllTrim(cEsp1)+Space(TamSX3("C5_ESPECI1")[1]), TamSX3("C5_ESPECI1")[1])
 
     // ==============================
     // VOLTA PARA O REGISTRO ORIGINAL

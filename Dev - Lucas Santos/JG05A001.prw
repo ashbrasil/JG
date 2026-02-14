@@ -36,7 +36,7 @@ User Function JG05A001(cNota, cSerie)
     Local nStepY    := 275  // Altura total de cada nota (pixels) para pular para a próxima
     Local nMrgTop   := 20   // Margem superior inicial
     
-    _cPathPDF := "C:\Temp\"
+    _cPathPDF := "\SPOOL\"
     //_cPathPDF := GetSrvProfString("ROOTPATH","") + "\SPOOL\"
     lDisabeSetup := .T.
 

@@ -18,7 +18,7 @@ User Function M460FIM()
     Local cSerie    := SF2->F2_SERIE
     Local cCliente  := SF2->F2_CLIENTE
     Local cLoja     := SF2->F2_LOJA
-    Local lGeraBol  := SuperGetMv("MV_XBOLETO",,.T.)
+    Local lGeraBol  := .T.//SuperGetMv("MV_XBOLETO",,.T.)
     Local cCondPag  := SF2->F2_COND
     Local cFormaPg  := ""
     
@@ -36,7 +36,7 @@ User Function M460FIM()
     EndIf
 
     //Geração de boleto, conforma a forma de pagamento no cadastro da condição de pagamento
-    If lGeraBol .And. cFormaPg == "BOL"
+    If lGeraBol .And. ALLTRIM(cFormaPg) == "BOL" //"BOL   "
     
         // Pergunta ao usuário
         If MsgYesNo("A Nota Fiscal <b>" + cNota + "</b> foi emitida." + CRLF + CRLF + "Deseja imprimir o Boleto agora?", "Emissão Boleto (M460FIM)")
@@ -48,7 +48,22 @@ User Function M460FIM()
 
             //Impressão de Boletos
             Processa({|| U_JG05A002(cNota, cSerie, cCliente, cLoja) }, "Processando Boletos...")
-            
+            if File(Lower("\spool\boleto_bancario_"+cNota+".pdf"))
+					lRet := .t.
+					cPasta   := "C:\Temp\"
+					cArquivo := Lower("boleto_bancario_"+cNota+".pdf")
+
+					lCopiou := CpyS2T( Lower("\spool\boleto_bancario_"+cNota+".pdf"), cPasta )
+
+					If lCopiou
+
+						//ShellExecute("OPEN", cArquivo, "", cPasta, 1)
+
+					Else
+
+						alert("Boleto bancário não pode ser copiado.")
+					EndIF
+                endIf
         EndIf
     
     EndIf

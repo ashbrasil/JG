@@ -175,7 +175,6 @@ Static Function ImpCabCli(oPrinter, nLin, nPag)
     Local cCondPag  := ""
     Local cTpFrete  := ""
     Local cPedido   := ""
-    
 
     If (cAliasImp == "SC5")
         cPedido   := &("SC5->C5_NUM")
@@ -185,7 +184,7 @@ Static Function ImpCabCli(oPrinter, nLin, nPag)
         dData     := &("SC5->C5_EMISSAO")
     Elseif (cAliasImp == "SCJ")
         cPedido   := &("SCJ->CJ_NUM")
-        cVendedor := ''
+        cVendedor := IIf(Type("SCJ->CJ_VEND1") == "C", &("SCJ->CJ_VEND1"), "")
         cCondPag  := &("SCJ->CJ_CONDPAG")
         cTpFrete  := &("SCJ->CJ_TPFRETE")
         dData     := &("SCJ->CJ_EMISSAO")

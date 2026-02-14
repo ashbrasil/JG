@@ -13,7 +13,7 @@ User Function ZSF1VEIC()
 
     // Tamanhos fixos (sem SX3)
     Local nTamCh   := 44
-    Local nTamV1   := 6
+    Local nTamV1   := 7
 
     Local oDlg     := Nil
     Local lOk      := .F.
@@ -39,10 +39,14 @@ User Function ZSF1VEIC()
     // Valores atuais
     If Type("SF1->F1_CHVNFE") == "C"
         cChave := SF1->F1_CHVNFE
+    Else
+        cChave := Space(nTamCh)
     EndIf
 
     If Type("SF1->F1_VEICUL1") == "C"
-        cVeic1 := SF1->F1_VEICUL1
+        cVeic1 := Left(SF1->F1_VEICUL1, nTamV1) 
+    Else 
+        cVeic1 := Space(nTamV1)
     EndIf
 
     If Type("SF1->F1_PBRUTO") == "N"
@@ -65,7 +69,7 @@ User Function ZSF1VEIC()
 
         @ 55, 10 SAY "Veículo (F1_VEICUL1):" OF oDlg PIXEL
         // @S6 limita e permite digitar
-        @ 68, 10 GET cVeic1 PICTURE "@S7" SIZE 140, 14 OF oDlg PIXEL
+        @ 68, 10 GET cVeic1 PICTURE "@R! AAA-9N99" SIZE 140, 14 OF oDlg PIXEL
 
         @ 95, 10 SAY "Peso Bruto (F1_PBRUTO):" OF oDlg PIXEL
         @ 108, 10 GET nPBruto PICTURE "@E 9,999,999.9999" SIZE 220, 14 OF oDlg PIXEL
@@ -87,8 +91,8 @@ User Function ZSF1VEIC()
     EndIf
 
     // Segurança extra (garante tamanho)
-    cChave := Left(AllTrim(cChave), nTamCh)
-    cVeic1 := Left(AllTrim(cVeic1), nTamV1)
+    cChave := Left(AllTrim(cChave)+Space(nTamCh), nTamCh)
+    cVeic1 := Left(AllTrim(cVeic1)+Space(nTamV1), nTamV1)
 
     // ==============================
     // VOLTA PARA O REGISTRO ORIGINAL
