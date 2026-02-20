@@ -26,6 +26,7 @@ User Function MA410MNU()
     //Adicionando função de vincular
     aAdd(aRotina,{"* Imprimir Promissória"  , "U_JG05A003('1')", 0 , 4, 0 , Nil} )
     aAdd(aRotina,{"* Imprimir Boleto"       , "U_JG05A003('2')", 0 , 4, 0 , Nil} )
+    aAdd(aRotina,{"Consulta de Produtos JG" , "U_JGRT001()"    , 0 , 4, 0 , Nil} )
     // aadd(aRotina,{"* Envia E-mail com Boleto e Danfe"       , "U_JG05A004()", 0 , 4, 0 , Nil})
      
     FWRestArea(aArea)

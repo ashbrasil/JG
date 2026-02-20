@@ -35,7 +35,7 @@ User Function M415FSQL()
                 EndIf
                 SA3->(DbSkip())
             EndDo
-            cFiltro := " ( CJ_VEND1 = ' ' OR CJ_VEND1 IN (" + ValToSql(cEquipe) + ") ) " 
+            cFiltro := " ( CJ_VEND1 = ' ' OR CJ_VEND1 IN (" + cEquipe + ") ) " 
         ElseIf cCarVndLog == "000004" // Vendedor
             cFiltro := " ( CJ_VEND1 = ' ' OR CJ_VEND1 = " + ValToSql(cCodVndLog) + " ) " 
         EndIf
