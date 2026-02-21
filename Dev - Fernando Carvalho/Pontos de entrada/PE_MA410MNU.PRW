@@ -11,6 +11,23 @@ Acrescentar botões no browse de pedidos de vendas.
             Este ponto de entrada pode ser utilizado para inserir novas opções no array aRotina.
             https://tdn.totvs.com/display/public/PROT/MA410MNU
 @Contributors Alfredo, Lucas Santos
+
+Exemplo:
+aadd(aRotina,{'TEXTO DO BOTÃO','NOME DA FUNÇÃO' , 0 , 3,0,NIL})
+ONDE:
+Parametros do array a Rotina:
+1. Nome a aparecer no cabecalho
+2. Nome da Rotina associada (Chamada da rotina)
+3. Reservado
+4. Tipo de Transação a ser efetuada:
+     1 - Pesquisa e Posiciona em um Banco de Dados
+     2 - Simplesmente Mostra os Campos
+     3 - Inclui registros no Bancos de Dados
+     4 - Altera o registro corrente
+     5 - Remove o registro corrente do Banco de Dados
+5. Nivel de acesso
+6. Habilita Menu Funcional
+
 /*/
 User Function MA410MNU()
     Local aArea := FWGetArea()
@@ -26,7 +43,7 @@ User Function MA410MNU()
     //Adicionando função de vincular
     aAdd(aRotina,{"* Imprimir Promissória"  , "U_JG05A003('1')", 0 , 4, 0 , Nil} )
     aAdd(aRotina,{"* Imprimir Boleto"       , "U_JG05A003('2')", 0 , 4, 0 , Nil} )
-    aAdd(aRotina,{"Consulta de Produtos JG" , "U_JGRT001()"    , 0 , 4, 0 , Nil} )
+    aAdd(aRotina,{"Consulta de Produtos JG" , "U_JGRT001()"    , 0 , 1, 0 , Nil} )
     // aadd(aRotina,{"* Envia E-mail com Boleto e Danfe"       , "U_JG05A004()", 0 , 4, 0 , Nil})
      
     FWRestArea(aArea)
