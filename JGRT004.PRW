@@ -20,33 +20,33 @@
 */
 User Function JGRT004(_cCodFor)     
                    
-Local oButton1
-Local oGet1
-Local cGet1 := Space(50)//TamSX3('A2_NOME')[1]                  
-Local oGet2
-Local cGet2 := Space(50)//TamSX3('A2_NREDUZ')[1]
-Local oGet3
-Local cGet3 := Space(18)
-Local oGet4
-Local cGet4 := Space(TamSX3('A2_COD')[1])
-Local oSay1
-Local oSay2
-Local oSay3
-Local oSay4
-Local aButtons := {}
-Local _x
-Local bSetF5   := Nil
+	Local oButton1
+	Local oGet1
+	Local cGet1 := Space(50)//TamSX3('A2_NOME')[1]                  
+	Local oGet2
+	Local cGet2 := Space(50)//TamSX3('A2_NREDUZ')[1]
+	Local oGet3
+	Local cGet3 := Space(18)
+	Local oGet4
+	Local cGet4 := Space(TamSX3('A2_COD')[1])
+	Local oSay1
+	Local oSay2
+	Local oSay3
+	Local oSay4
+	Local aButtons := {}
+	Local _x
+	Local bSetF5   := Nil
 
-Private _cRet        := ""
-Private _aFornecedor := {}
-Private _aFor        := {}
-Private _aTitulos    := {}
-Private oWBrowse1    := {}
-Private _aLegenda    := {}
+	Private _cRet        := ""
+	Private _aFornecedor := {}
+	Private _aFor        := {}
+	Private _aTitulos    := {}
+	Private oWBrowse1    := {}
+	Private _aLegenda    := {}
 
-Static oDlg
+	Static oDlg
 
-	Default _cCodFor := &(ReadVar())
+	Default _cCodFor := IIf(Type(ReadVar())=="C",&(ReadVar()),"")
 
 	AAdd(_aTitulos, {"","Código","Lj.For","Nome","Fantasia","CNPJ/CPF","UF","Municipio","Bairro","Endereço"})
 	AAdd(_aTitulos, {10,30,15,120,90,60,15,40,40,50})

@@ -46,7 +46,7 @@ Private _aLegenda := {}
 
 Static oDlg
 
-	Default _cCodCli := &(ReadVar())
+	Default _cCodCli := IIf(Type(ReadVar())=="C",&(ReadVar()),"")
 
 	AAdd(_aTitulos, {"","Código","Lj.Cli","Nome","Fantasia","CNPJ/CPF","UF","Municipio","Bairro","Endereço"})
 	AAdd(_aTitulos, {10,30,15,120,90,60,15,40,40,50})

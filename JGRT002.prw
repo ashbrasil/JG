@@ -106,10 +106,15 @@ Return()
 //Função para preencher o listbox
 Static Function RefreshBrw()
 
-	Local cQry      := ""
-	Local lSelSB1   := (Select("SB1") > 0)
-	Local lProdOk   := .F.
-	Local aArea     := GetArea()
+	Local cQry       := ""
+	Local lSelSB1    := (Select("SB1") > 0)
+	Local lProdOk    := .F.
+	Local aArea      := FWGetArea()
+	// Local nSizeFil   := FwSizeFilial()
+	// Local cModAcEmp  := FWModeAccess("SF4",1)
+	// Local cModAcUni  := FWModeAccess("SF4",2)
+	// Local cModAcFil  := FWModeAccess("SF4",3)
+	// Local cLayOutFil := FWSM0Layout()
 
 	dbSelectArea("SB1")
 	dbSetOrder(1)
@@ -272,7 +277,7 @@ Static Function RefreshBrw()
 	cQry += "		INNER JOIN " + RetSqlName("SC6") + " C6 "+CRLF
 	cQry += "			ON C6.D_E_L_E_T_ <> '*' AND C6_FILIAL = C5_FILIAL AND C6_NUM = C5_NUM AND C6_ITEM = C9_ITEM "+CRLF
 	cQry += "		INNER JOIN " + RetSqlName("SF4") + " F4 "+CRLF
-	cQry += "			ON F4.D_E_L_E_T_ <> '*' AND F4_FILIAL = F4_FILIAL AND F4_CODIGO = C6_TES "+CRLF
+	cQry += "			ON F4.D_E_L_E_T_ <> '*' AND F4_FILIAL = C6_FILIAL AND F4_CODIGO = C6_TES "+CRLF
 	cQry += "	WHERE "+CRLF
 	cQry += "		C9.D_E_L_E_T_  <> '*' "+CRLF
 	cQry += "		AND C9_PRODUTO = " + ValToSql(cGetProduto) + " "+CRLF

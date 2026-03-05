@@ -5,7 +5,6 @@
 #INCLUDE "TOTVS.CH"
 #include "RPTDEF.CH"
 #include "FWPRINTSETUP.CH"
-
 /*/{Protheus.doc} M460FIM
 Ponto de entrada após a gravação da Nota Fiscal de Saída.
 Questiona geração de boleto e borderô.
@@ -21,8 +20,17 @@ User Function M460FIM()
     Local lGeraBol  := .T.//SuperGetMv("MV_XBOLETO",,.T.)
     Local cCondPag  := SF2->F2_COND
     Local cFormaPg  := ""
-    
-
+//    Local cBolNew   := 1  // 1 =M460
+    //Leo
+   	Local cAreaAnt := Alias()
+	Local aAreaSD2 := SD2->(getArea())
+	Local aAreaSF2 := SF2->(getArea())
+	Local aAreaSC5 := SC5->(getArea())
+	Local aAreaSC9 := SC9->(getArea())
+	Local aAreaSE1 := SE1->(getArea())   
+	Local aAreaSE4 := SE4->(getArea())   
+	Local aAreaSA1 := SA1->(getArea())
+    //Leo  
     DbSelectArea("SE4")
     SE4->(DbSetOrder(1))
     
@@ -47,6 +55,7 @@ User Function M460FIM()
             DbSelectArea("SEA")
 
             //Impressão de Boletos
+//            Processa({|| U_JG05A002(cNota, cSerie, cCliente, cLoja, cBolNew) }, "Processando Boletos...")
             Processa({|| U_JG05A002(cNota, cSerie, cCliente, cLoja) }, "Processando Boletos...")
             if File(Lower("\spool\boleto_bancario_"+cNota+".pdf"))
 					lRet := .t.
@@ -69,5 +78,16 @@ User Function M460FIM()
     EndIf
 
     RestArea(aArea)
+    //Leo
+	// Restaura ambiente
+	RestArea(aAreaSD2)
+	RestArea(aAreaSF2)
+	RestArea(aAreaSC5)
+	RestArea(aAreaSC9)   
+	RestArea(aAreaSE1)
+	RestArea(aAreaSE4)
+	RestArea(aAreaSA1)  
+	dbSelectArea(cAreaAnt)
+    //Leo
 
 Return .T.

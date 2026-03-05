@@ -13,7 +13,7 @@ User Function JG05A003(cOpcao)
 	Local cAliasSD2 := GetNextAlias()
 	Local cPasta   := ""
 	Local cArquivo := ""
-
+//    Local cBolNew  := 2
 	cQuery := " SELECT 	D2_FILIAL,D2_DOC,D2_SERIE,D2_CLIENTE,D2_LOJA FROM " + RetSqlName("SD2") + " "
 	cQuery += " WHERE D_E_L_E_T_ = ' ' AND D2_PEDIDO = '" + cPedido + "'"
 	cQuery += " AND D2_FILIAL = '" + xFilial("SD2") + "'"
@@ -25,7 +25,7 @@ User Function JG05A003(cOpcao)
 
 	If !(cAliasSD2)->(EOF())
 		if SF2->(dbseek( (cAliasSD2)->(D2_FILIAL+D2_DOC+D2_SERIE+D2_CLIENTE+D2_LOJA)))
-			cNota  := (cAliasSD2)->D2_DOC
+			cNota  := Alltrim((cAliasSD2)->D2_DOC)
 			cSerie := (cAliasSD2)->D2_SERIE
 
 			// Imprimir Nota Promissória
@@ -60,6 +60,7 @@ User Function JG05A003(cOpcao)
 
 				Else
 
+//					u_JG05A002(cNota, cSerie, cClient, cLoja, cBolNew)
 					u_JG05A002(cNota, cSerie, cClient, cLoja)
 					if File(Lower("\spool\boleto_bancario_"+cNota+".pdf"))
 						lRet := .t.
@@ -78,9 +79,20 @@ User Function JG05A003(cOpcao)
 						EndIF
 					else
 
-						cMsgErro:= "Boleto bancário não encontrado."
-						alert(cMsgErro)
+					//	cMsgErro:= "Boleto bancário não encontrado."
+					//	alert(cMsgErro)
+					
 					endIf
+                    cArqSrvPDF := "\spool\boleto_bancario_"+cNota+".pdf"
+					cNomeArq := Lower("boleto_bancario_"+cNota+".pdf")
+                    //    MEMOWRITE("C:\TEMP\JG05A03.TXT", cQuery)
+                    If  File(Lower(cArqSrvPDF))  
+                       If   !File(Lower("c:\temp\"+cNomeArq))
+                            If  !CpyS2T(Lower(cArqSrvPDF), "c:\temp\",.F.,.T. )
+                                MsgAlert(" cArqSrvPDF ->"+cArqSrvPDF+" c:\temp\"  ,"Verificar")
+                            EndIf
+                        EndIf    
+                    EndIf
 
 
 

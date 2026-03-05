@@ -5,25 +5,24 @@
 #INCLUDE "TOTVS.CH"
 #include "RPTDEF.CH"
 #include "FWPRINTSETUP.CH"
+#INCLUDE "COLORS.CH"
 /*/{Protheus.doc} fFluxoFin
 Função que orquestra a geração do borderô e impressão.
 Brunno Alves
 /*/
 User Function JG05A002(cNota, cSerie, cCliente, cLoja)
-	Local lBordOK := .T.
+	Local lBordOK1 := .T.
 
 	// 1. Gera o Borderô
-	//lBordOK := fGeraBord(cNota, cSerie, cCliente, cLoja)
-
+    // lBordOK := fGeraBord(cNota, cSerie, cCliente, cLoja)
 	// 2. Se gerou borderô com sucesso, imprime o boleto
-	If lBordOK
-		fImpBoleto(cNota, cSerie, cCliente, cLoja)
+	If lBordOK1 
+		fImpBoleto(cNota, cSerie, cCliente, cLoja) 
 	Else
-		MsgStop("Não foi possível gerar o borderô. O boleto não será impresso.", "Erro")
+		MsgStop("Não foi possível imprimir o borderô. O boleto não será impresso.", "Erro")
 	EndIf
 
 Return
-
 /*/{Protheus.doc} fGeraBord
 Gera o borderô via ExecAuto (FINA060)
 /*/
@@ -73,7 +72,7 @@ Static Function fGeraBord(cNota, cSerie, cCliente, cLoja)
 		// (cAliasSE1)->(DbCloseArea())
 		Return .F.
 	EndIf
-
+    Alert('Após QueryE1 c/ Return')
 	cBordero := ""
 	// Monta Cabecalho do Borderô
 	// O sistema gera a numeração automática se o parametro MV_NUMBOR estiver configurado
@@ -113,12 +112,10 @@ Static Function fGeraBord(cNota, cSerie, cCliente, cLoja)
 
 Return lRet
 
-
 /*/{Protheus.doc} fImpBoleto
 Chama a impressão do boleto (Exemplo usando FINR985 ou Customizado)
 /*/
 Static Function fImpBoleto(cNota, cSerie, cCliente, cLoja)
-
 	LOCAL aDadosEmp    := {	SM0->M0_NOMECOM                                    ,; //[1]Nome da Empresa
 	SM0->M0_ENDCOB                                     ,; //[2]Endereço
 	AllTrim(SM0->M0_BAIRCOB)+", "+AllTrim(SM0->M0_CIDCOB)+", "+SM0->M0_ESTCOB ,; //[3]Complemento
@@ -130,13 +127,14 @@ Static Function fImpBoleto(cNota, cSerie, cCliente, cLoja)
 	"I.E.: "+Subs(SM0->M0_INSC,1,3)+"."+Subs(SM0->M0_INSC,4,3)+"."+            ; //[7]
 	Subs(SM0->M0_INSC,7,3)+"."+Subs(SM0->M0_INSC,10,3)                        }  //[7]I.E
 
+//    Local  cBolN  := cBolNew
 	LOCAL aDadosTit
 	LOCAL aDadosBanco
 	LOCAL aDatSacado
 	LOCAL aBolText     := {SuperGetMv("MV_MENBOL1",,"  ")   ,;    // Primeiro texto para comentario
-	SuperGetMv("MV_MENBOL2",,"  ")   ,;    // Segundo texto para comentario
 	SuperGetMv("MV_MENBOL3",,"  ")   ,;
 		" ",;
+	SuperGetMv("MV_MENBOL2",,"  ")   ,;    // Segundo texto para comentario
 		" " }    // Terceiro texto para comentario
 
 	LOCAL nI           := 1
@@ -144,13 +142,15 @@ Static Function fImpBoleto(cNota, cSerie, cCliente, cLoja)
 	LOCAL nVlrAbat	   := 0
 	LOCAL cNosso       := ""
 	// LOCAL _aVlrNF	   := {}
-	Local lAdjustToLegacy	:= .F. //Se .T. recalcula as coordenadas para manter o legado de proporções com a classe TMSPrinter.
+//	Local lAdjustToLegacy	:= .F. //Se .T. recalcula as coordenadas para manter o legado de proporções com a classe TMSPrinter.
 	// Local lM460FIM	  := FWIsInCallStack("U_M460FIM")
 	Local lDisabeSetup := .F.
 	Local _cPathPDF := ""
-	//Local cPathPDF  := ""
-	Local _cArqPDF	:= ""
-	//Local cArqPDF	:= ""
+//	Local _cArqPDF	:= ""
+    Local cPrinterP := 'Microsoft Print to PDF'
+//    Local aArea := GetArea()
+    Local cStartPath := GetTempPath(.T.)+"totvsprinter\"
+
 	private CDIGNOSSO := ""
 	Private _cConvenio := ""
 	Private _cCarteira := ""
@@ -167,10 +167,11 @@ Static Function fImpBoleto(cNota, cSerie, cCliente, cLoja)
 	Private aReturn  := {"Zebrado", 1,"Administracao", 2, 2, 1, "",1 }
 	Private nLastKey := 0
 
+    cStartPath := cStartPath
+
 	// oPrint:= TMSPrinter():New( "Boleto Bancario Laser" )
 	// oPrint:Setup()
 	// oPrint:SetPortrait()
-
 	If select("TSE1") <> 0
 		TSE1->(DbcloseArea())
 	Endif
@@ -188,64 +189,39 @@ Static Function fImpBoleto(cNota, cSerie, cCliente, cLoja)
 
 	TCQuery cQuery New Alias "TSE1"
 
+    MEMOWRITE("C:\TEMP\queryJG05A002.TXT", cQuery)
+
 	If TSE1->(EoF())
 		MsgAlert("Nenhum título disponível encontrado para gerar borderô.")
 		// (cAliasSE1)->(DbCloseArea())
 		Return .F.
 	EndIf
-	// _cPathPDF := "C:\Temp\"
-	_cPathPDF := "\SPOOL\"
+	cPathPDF := "c:\temp\"
+	_cPathPDF := "c\SPOOL\"
 	//_cPathPDF := GetSrvProfString("ROOTPATH","") + "\SPOOL\"
 	lDisabeSetup := .T.
+    //cPathPDF   := "\spool\"
 
 	If ! ExistDir(_cPathPDF)
 		FWMakeDir(_cPathPDF)
 	EndIf
 
-/*
-    If lM460FIM 
-        lDisabeSetup := .T.
-        if Empty(_cPathPDF)
-            _cPathPDF := GetTempPath()		 //Definindo o diretório como a temporária do S.O.
-            If Empty(_cPathPDF)
-                _cPathPDF := "C:\TEMP"
-            EndIf	
-            //Se o último caracter da pasta não for barra, será barra para integridade
-            If SubStr(_cPathPDF, Len(_cPathPDF), 1) != "\"
-                _cPathPDF += "\"
-            EndIf 
-        EndIf
-    EndIf
-*/
-	If 0=1//_lPDFCustom //Lorran Ferreira - Boleto em PDF para enviar por email
-		lDisabeSetup := .T.
-		lJob := .T.
-		If !FWMakeDir( _cPathPDF )
-			Return
-		EndIf
-		oPrint := FWMsPrinter():New(_cArqPDF,IMP_PDF,lAdjustToLegacy,_cPathPDF,.T., /*lTReport*/,/*oPrintSetup*/, /*cPrinter*/,.T./*lServer*/,/*lPDFAsPNG*/,/*lRaw*/,.F./*lViewPDF*/)
-		oPrint:cPathPDF := _cPathPDF
-		oPrint:lViewPDF := .F.
-		oPrint:SetPortrait()
-		oPrint:SetPaperSize(DMPAPER_A4)
-	Else
-		// oPrint := FWMsPrinter():New("Boleto_Bancario_"+cNota, IIF(lM460FIM,IMP_PDF,IMP_SPOOL) , lAdjustToLegacy,IIF(lM460FIM,_cPathPDF,Nil),lDisabeSetup)
-		oPrint := FWMsPrinter():New("Boleto_Bancario_"+cNota, IMP_PDF , lAdjustToLegacy,_cPathPDF,lDisabeSetup)
-		// oPrint 		:= FWMSPrinter():New("Boleto_Bancario_"+cNota		, IMP_PDF, lAdjustToLegacy	,_cPathPDF				, lDisableSetup	,	,	,	,	, ,	.f.	,.F.,)// Ordem obrigátoria de configuração do relatório
+    lDisabeSetup := .T.
+	oPrint := FWMsPrinter():New("Boleto_Bancario_"+Alltrim(cNota),IMP_PDF,.F.,"",.F., , @oPrint, cPrinterP, , , ,.T.)
+    oPrint:cPrinter := cPrinterP
 
-		oPrint:lserver:=.T.
-		oPrint:linjob:=.T.
-
-		oPrint:SetPortrait()
-		oPrint:SetPaperSize(DMPAPER_A4)
-		// If lM460FIM
-			//Força a impressão em PDF
-			oPrint:nDevice  := 6
-			oPrint:cPathPDF := _cPathPDF
-			oPrint:lServer  := .T.
-			oPrint:lViewPDF := .f.
-		// EndIf
+	If oPrint:nModalResult <> 1
+    	  Return(.T.)
 	EndIf
+
+    oPrint:SetResolution( 72 )
+	oPrint:SetPortrait()
+	oPrint:SetPaperSize( DMPAPER_A4 )
+	oPrint:nDevice  := 6
+	oPrint:SetMargin(10,10,10,10)
+//	    PixelX  := oPrint:nLogPixelX()
+//		PixelY  := oPrint:nLogPixelY()
+//		nMM     := 0
 
 	if !lDisabeSetup .And. oPrint:nModalResult <> PD_OK //.And. !_lPDFCustom
 		Return
@@ -521,6 +497,7 @@ Static Function fImpBoleto(cNota, cSerie, cCliente, cLoja)
 	Enddo
 
 	oPrint:Preview()		// Visualiza antes de imprimir
+
 	Ms_Flush()
 Return .T.
 
@@ -570,8 +547,15 @@ Static Function Impress(oPrint,aDadosEmp,aDadosTit,aDadosBanco,aDatSacado,aBolTe
 	oFont20  := TFont():New("Arial",9,-20,.T.,.T.,5,.T.,5,.T.,.F.)
 	oFont21  := TFont():New("Arial",9,21,.T.,.T.,5,.T.,5,.T.,.F.)
 	oFont24  := TFont():New("Arial",9,24,.T.,.T.,5,.T.,5,.T.,.F.)
+    // Definição de Fontes
+//    oFont12  := TFont():New("Arial",,12,,.F.,,,,,.F.,.F.)
+ //   oFont12b := TFont():New("Arial",,12,,.T.,,,,,.F.,.F.)
+ //   oFont10  := TFont():New("Arial",,10,,.F.,,,,,.F.,.F.)
+ //   oFont08  := TFont():New("Arial",,08,,.F.,,,,,.F.,.F.)
+
 
 	oPrint:StartPage()   // Inicia uma nova página
+
 
 /******************/
 /* PRIMEIRA PARTE */
@@ -1694,8 +1678,6 @@ Static Function Modu11(cLinha,cBase,cTipo)
 		EndIf
 	EndIf
 Return cDigRet
-
-
 
 	Static Procedure NrBordero()
 	Local nBordero := ""

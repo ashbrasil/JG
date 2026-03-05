@@ -1,11 +1,17 @@
-#Include 'Protheus.ch'
-#Include 'FWPrintSetup.ch'
-#Include 'RPTDef.ch'
-#Include 'TopConn.ch' // Necessário para manipulação de Query
-
+#include 'protheus.ch'
+#include 'parmtype.ch'
+#INCLUDE "TBICONN.CH"
+#INCLUDE "COLORS.CH"
+#INCLUDE "RPTDEF.CH"
+#include "rwmake.ch"
+#INCLUDE "FWPrintSetup.ch"
+#INCLUDE "TOTVS.ch"
+#include "ap5mail.ch"
+#Include 'TopConn.ch' 
+// Necessário para manipulação de Query
 /*/{Protheus.doc} JG05A001
 Função para impressão de Nota Promissória (uma por parcela).
-Verifica se a condição de pagamento é diferente de 001.
+Verifica se a condição de pagamento tem forma pgto BOL, nova regra trocando pela regra antiga //é diferente de 001.
 Utiliza Query SQL para buscar parcelas na SE1.
 @author Gemini AI
 @since 05/02/2026
@@ -23,27 +29,20 @@ User Function JG05A001(cNota, cSerie)
     Local nValor    := 0
     Local dVencto   := CtoD("")
     Local cExtenso  := ""
+    Local vHP05A001 := GetMV("JG_HP05A01") // Parâmetro para tratar pergunta Habilitar 
     //Local cTexto    := ""
     Local cTexto1, cTexto2, cTexto3 := ""
     Local lEncontrou := .F.
     Local cQuery    := ""
     Local cAliasSE1 := GetNextAlias() // Gera um nome aleatório para a tabela temporária
-    //Local cCondicao := SuperGetMV("MV_XCONDNP",,"001|26") // Condição para não imprimir a NP
-    Local _cPathPDF := ""
-// Variáveis para paginação (3 por página)
     Local nSlot     := 0    // Contador de notas na página atual (0, 1 ou 2)
     Local nBaseY    := 0    // Posição Y inicial da nota atual
     Local nStepY    := 275  // Altura total de cada nota (pixels) para pular para a próxima
     Local nMrgTop   := 20   // Margem superior inicial
-    
-    _cPathPDF := "\SPOOL\"
-    //_cPathPDF := GetSrvProfString("ROOTPATH","") + "\SPOOL\"
-    lDisabeSetup := .T.
-
-    If ! ExistDir(_cPathPDF)
-        FWMakeDir(_cPathPDF)
-    EndIf
-
+    Local vFWMSP    := 0
+    Local cPrinterP := 'Microsoft Print to PDF'
+    Local aArea := GetArea()
+    Local cStartPath := GetTempPath(.T.)+"totvsprinter\"
     // --- BUSCA DADOS DO CLIENTE (SEU TRECHO) ---
     DbSelectArea("SA1")
     SA1->(DbSetOrder(1))
@@ -55,18 +54,59 @@ User Function JG05A001(cNota, cSerie)
         cUfCli  := AllTrim(SA1->A1_EST)
         cCepCli := Transform(SA1->A1_CEP, "@R 99.999-999")
     EndIf
+ 
+//  TESTAR 1 SEM MOSTRAR
+    cNomeRel :=  "NP_" + Alltrim(cNota)+'.rel'    
+    cNomeArq :=  "NP_" + Alltrim(cNota)+'.pdf'    
+
+    If vHP05A001 == 'S'
     
-    // --- PREPARAÇÃO DA IMPRESSÃO ---
-    oPrinter := FWMSPrinter():New("NP_" + cNota, IMP_PDF, .F., _cPathPDF, lDisabeSetup)
+    	If  MsgBox("Deseja visualizar a Nota Promissória em geração? "+ "   "+cNota,"Confirma?","YESNO")
+            //Definindo o diretório como a temporária do S.O.
+            cCaminho  := GetTempPath()
+            //Criando o objeto do FMSPrinter                    1      2        3    4   5   6    7        8  910 11 12
+            If  MsgBox("Deseja abrir os parâmetros para Impressão? "+ "   "+cNota,"Confirma?","YESNO")
+                oPrinter := FWMSPrinter():New("NP_" + AllTrim(cNota), IMP_PDF, .F., "",.F. , , @oPrinter, "", , , , .T.)
+                oPrinter:cPrinter := cPrinterP
+                vFWMSP := 3
+            Else
+                oPrinter := FWMSPrinter():New("NP_" + AllTrim(cNota), IMP_PDF, .F., "",.T., , @oPrinter, "", , , , .T.)
+                oPrinter:cPrinter := cPrinterP
+                vFWMSP := 2
+            EndIf
+        Else
+            cCaminho := "\spool\"
+            //Se não existir a pasta na Protheus Data, cria ela
+            If ! ExistDir(cCaminho)
+                MakeDir(cCaminho)
+            EndIf
+            oPrinter := FWMSPrinter():New("NP_" + Alltrim(cNota), IMP_PDF,.F.,cStartPath,.T.,.F., @oPrinter, cPrinterP,,,,.F.)
+            oPrinter:cPathPDF := "\spool\" //cCaminho
+            vFWMSP := 1
+        EndIf
+    
+    Else
+        cCaminho := "\spool\"
+        //Se não existir a pasta na Protheus Data, cria ela
+        If ! ExistDir(cCaminho)
+            MakeDir(cCaminho)
+        EndIf
+        oPrinter := FWMSPrinter():New("NP_" + Alltrim(cNota), IMP_PDF,.F.,cStartPath,.T.,.F., @oPrinter, cPrinterP,,,,.F.)
+        oPrinter:cPathPDF := "\spool\" //cCaminho
+        vFWMSP := 1
+    EndIf
+
+	If oPrinter:nModalResult <> 1 .AND. vFWMSP == 3
+    	  Return(.T.)
+	EndIf
+
+
     oPrinter:SetResolution(72)
     oPrinter:SetPortrait()
     oPrinter:SetPaperSize(DMPAPER_A4)
     oPrinter:SetMargin(10, 10, 10, 10)
     oPrinter:nDevice  := 6
-    oPrinter:cPathPDF := _cPathPDF      
-    oPrinter:lServer  := .T.
-    oPrinter:lViewPDF := .T.  
-    
+
     // Definição de Fontes
     oFont12  := TFont():New("Arial",,12,,.F.,,,,,.F.,.F.)
     oFont12b := TFont():New("Arial",,12,,.T.,,,,,.F.,.F.)
@@ -91,9 +131,13 @@ User Function JG05A001(cNota, cSerie)
     // Executa a Query e joga no Alias temporário
     dbUseArea(.T., "TOPCONN", TcGenQry(,,cQuery), cAliasSE1, .F., .T.)
     
+//    MEMOWRITE("C:\TEMP\queryJG05A001.TXT", cQuery)
+
     // Loop nos resultados da Query
     While (cAliasSE1)->(!Eof())
             
+//        MEMOWRITE("C:\TEMP\cNota.TXT", "NP " + AllTrim(cNota) + "/" + AllTrim((cAliasSE1)->E1_PARCELA) )
+
         lEncontrou := .T.
 // Se for a primeira nota da página (Slot 0), abre a página
         If nSlot == 0
@@ -120,7 +164,6 @@ User Function JG05A001(cNota, cSerie)
         // Cabeçalho
         oPrinter:Say(nBaseY + 10, 60, "NOTA PROMISSÓRIA", oFont12b)
         oPrinter:Say(nBaseY + 10, 410, "Nº " + AllTrim(cNota) + "/" + AllTrim((cAliasSE1)->E1_PARCELA), oFont12b)
-        
         // Vencimento e Valor
         oPrinter:Say(nBaseY + 40, 60, "Vencimento: " + DtoC(dVencto), oFont12)
         
@@ -184,14 +227,68 @@ User Function JG05A001(cNota, cSerie)
     
     (cAliasSE1)->(DbCloseArea()) // Fecha a tabela temporária
     
-    If lEncontrou
+    If lEncontrou .AND. vFWMSP == 2 .OR. vFWMSP == 2 
         oPrinter:Preview()
+    Else
+        oPrinter:Print()
     EndIf
-    
+  //  cPathPDF   := "\spool\"
+    cArqTrbPDF := GetTempPath(.T.)+"totvsprinter\"+cNomeArq
+    cArqTrbREL := GetTempPath(.T.)+"totvsprinter\"+cNomeRel
+    cArqSrvPDF := "\spool\"+cNomeArq
+
+    If  File(Lower(cArqTrbPDF)) .and. vFWMSP >= 2 
+        If !File(Lower(cArqSrvPDF))
+           If  !CpyT2S(Lower(cArqTrbPDF), "\spool\",.T.,.T. )
+               MsgAlert(" cArqTrbPDF ->"+cArqTrbPDF+"  cPathPDF->"  ,"Verificar")
+           EndIf
+       EndIf    
+    EndIf
+
+    If  File(Lower(cArqSrvPDF)) 
+        If !File(Lower("c:\temp\"+cNomeArq))
+           If  !CpyS2T(Lower(cArqSrvPDF), "c:\temp\",.T.,.T. )
+               MsgAlert(" cArqSrvPDF ->"+cArqSrvPDF+" c:\temp\"  ,"Verificar")
+           EndIf
+       EndIf    
+    EndIf
+
+
+    If  File(Lower(cArqTrbPDF)) 
+        If  !File(Lower("c:\temp\"+cNomeArq))
+            If  !__CopyFile(Lower(cArqTrbPDF), "c:\temp\"+cNomeArq)
+                If  !__CopyFile(Lower(cArqSrvPDF), "c:\temp\"+cNomeArq)
+                     MsgAlert(" Erro copia p/ -> "+cArqSrvPDF+" "+cArqSrvPDF+" ","Verificar")
+                EndIf
+            Endif       
+        EndIf
+    EndIf
+
+    If  File(cArqTrbRel)   //Ambiente Servidor PathPEDF
+   		fErase(cArqTrbRel)
+    Else
+//		    Alert('Não encontrado  -> '+cArqTrbRel) 
+    EndIf
+
+
+    If  File(cArqSrvPDF)  //Ambiente Servidor PathPEDF
+   		fErase(cArqSrvPDF)
+    Else
+//		    Alert('Não encontrado  -> '+cArqSrvPDF) 
+    EndIf
+
+    If  File(cArqTrbPDF)  //Ambiente C:
+   		fErase(cArqTrbPDF)
+    Else
+//		    Alert('Não encontrar cArqTrbPDF -> '+cArqTrbPDF) 
+    EndIf
+
+
     FreeObj(oFont12)
     FreeObj(oFont12b)
     FreeObj(oFont10)
     FreeObj(oFont08)
     FreeObj(oPrinter)
     
+    RestArea(aArea)    
 Return
