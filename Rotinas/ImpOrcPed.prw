@@ -34,6 +34,7 @@ User Function ImpOrcPed()
     Local oBrowse           := GetmBrowse()
     Local cNum              := ''
     
+    Private __cFilial       := ''
     Private cChaveCli      	:= ''
     Private cAliasImp   	:= oBrowse:alias()
 	Private lImagem			:= MsgYesNo("Imprimir imagem do produto?") // Imprimir imagem do produto
@@ -51,15 +52,26 @@ User Function ImpOrcPed()
     If (cAliasImp == "SC5")
         cChaveCli   := xFilial('SA1') + SC5->C5_CLIENTE + SC5->C5_LOJACLI
         cNum        := SC5->C5_NUM
+        __cFilial   := SC5->C5_FILIAL
     Elseif (cAliasImp == "SCJ")
         cChaveCli   := xFilial('SA1') + SCJ->CJ_CLIENTE + SCJ->CJ_LOJA
         cNum        := SCJ->CJ_NUM
+        __cFilial   := SCJ->CJ_FILIAL
     ElseIf (cAliasImp == "SL1")
         cChaveCli := xFilial('SA1') + SL1->L1_CLIENTE + SL1->L1_LOJA
         cNum        := SL1->L1_NUM
+        __cFilial   := SL1->L1_FILIAL
     Else
         MsgInfo("Este relatório deve ser executado a partir do pedido de orcamento.","Atenção")
         Return        
+    EndIf
+
+    If __cFilial == "0101"
+        _cNome := "cabec_parauapeba"
+    Elseif __cFilial == "0103"
+        _cNome := "cabec_barcarena"
+    Else
+        _cNome := "cabec_parauapeba"      
     EndIf
         
 	dbSelectArea("SA1")
@@ -108,7 +120,7 @@ Static Function ImpOrcPed(oPrinter)
 	ImpCabCli(oPrinter, @nLin, @nPag)
 	ImpCabProd(oPrinter, @nLin, @nPag)
 	ImpProdutos(oPrinter, @nLin, @nPag)
-    ImpObs(oPrinter, @nLin)
+   // ImpObs(oPrinter, @nLin)
     ImpRod(oPrinter, nPag)
 	oPrinter:EndPage()
 Return
@@ -123,10 +135,15 @@ Retorna o caminho do arquivo de logo conforme empresa.
 Static Function GetLogo()
 
 	Local _cLogo      := ""
-	Local _cNome      := "cabec"
+	Local _cNome      := ""
 	Local _cExt       := ".png"
 	Local _cStartPath := GetSrvProfString("Startpath","")
 
+    If __cFilial == "0101"
+        _cNome := "cabec_parauapeba"
+    Elseif __cFilial == "0103"
+        _cNome := "cabec_barcarena"
+    EndIf
 	_cStartPath := _cStartPath + "imagens/"
 
 	If File(_cStartPath + _cNome + Alltrim(cEmpAnt) + _cExt)
@@ -175,6 +192,7 @@ Static Function ImpCabCli(oPrinter, nLin, nPag)
     Local cCondPag  := ""
     Local cTpFrete  := ""
     Local cPedido   := ""
+    
 
     If (cAliasImp == "SC5")
         cPedido   := &("SC5->C5_NUM")
@@ -184,7 +202,7 @@ Static Function ImpCabCli(oPrinter, nLin, nPag)
         dData     := &("SC5->C5_EMISSAO")
     Elseif (cAliasImp == "SCJ")
         cPedido   := &("SCJ->CJ_NUM")
-        cVendedor := IIf(Type("SCJ->CJ_VEND1") == "C", &("SCJ->CJ_VEND1"), "")
+        cVendedor := &("SCJ->CJ_VEND1")
         cCondPag  := &("SCJ->CJ_CONDPAG")
         cTpFrete  := &("SCJ->CJ_TPFRETE")
         dData     := &("SCJ->CJ_EMISSAO")
@@ -448,7 +466,9 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
 		If Len(aLinhas) > 1
 			oPrinter:Say(nLin + _nProxLin, nCol, aLinhas[2], oFont11:oFont)
 		EndIf
-
+        If Len(aLinhas) > 2
+			oPrinter:Say(nLin + _nProxLin + _nProxLin, nCol, aLinhas[3], oFont11:oFont)
+		EndIf
         // Marca
         nCol += 120
         oPrinter:Say(nLin, nCol, SubStr(SB1->B1_FABRIC, 1, 10), oFont11:oFont)
@@ -483,8 +503,8 @@ Static Function ImpProdutos(oPrinter, nLin, nPag)
         oPrinter:Say( nLin, nCol, Transform(nAliqIcm,  "@E 999,999.99"), oFont11:oFont)
 
         nLin += _nProxLin
-        If Len(aLinhas) > 1
-			//nLin += _nProxLin
+        If Len(aLinhas) > 2
+			nLin += _nProxLin
 		EndIf
         nTotalG += nTotal
         

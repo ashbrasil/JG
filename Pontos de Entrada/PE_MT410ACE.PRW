@@ -13,7 +13,7 @@ nOpc => 1 - Excluir, 2 - Visualizar e Resíduo, 3 - Copiar e 4 - Alterar.
 User Function MT410ACE()
 	Local aArea       := GetArea()
 	Local aAreaSC5    := SC5->(FWGetArea())
-	Local nOpc 	      := ParamIxb[1]
+	// Local nOpc 	      := ParamIxb[1]
 	Local lRetorno    := .T.
 	Local cJGGERLOJ   := SuperGetMV("JG_GERLOJ", .F., "XYZXYZ;") //Código do gerente da loja
 	Local cCodVndLog  := POSICIONE("SA3",7,FWXFILIAL("SA3")+__CUSERID,"A3_COD")
@@ -28,14 +28,14 @@ User Function MT410ACE()
 		EndIf
 	EndIf
 
-	If lRetorno 
-		If nOpc == 2 // Visualização
-			If !FwIsAdmin() .And. ProcName(2) <> "A410VISUAL" // Eliminar Residuo
-				MsgInfo("A rotina de eliminar residuos encontra-se desabilitada!","Use a rotina de exclusão")
-				lRetorno := .F.
-			EndIf
-		EndIf
-	EndIf
+	// If lRetorno 
+	// 	If nOpc == 2 // Visualização
+	// 		If !FwIsAdmin() .And. ProcName(2) <> "A410VISUAL" // Eliminar Residuo
+	// 			MsgInfo("A rotina de eliminar residuos encontra-se desabilitada!","Use a rotina de exclusão")
+	// 			lRetorno := .F.
+	// 		EndIf
+	// 	EndIf
+	// EndIf
 
 	FWRestArea(aAreaSC5)
 	RestArea(aArea)

@@ -11,21 +11,29 @@ Função que realiza a busca através de uma pesquisa customizada de registros de c
 @since 08/01/2026
 @version P12
 /*/
-User Function PesqDina()
+User Function PesqDina(cOrigem)
     Local oBrowse   := GetMBrowse()
     Local cFiltro   := ''
 
 
     If PergPesqu()
         If !Empty(cPesquisa)            
-            cFiltro     :=  "'"+cPesquisa+"' $ A1_NOME  .OR. '"+cPesquisa+"' $ A1_NREDUZ .OR. '"+cPesquisa+"' $ A1_CGC  "
+            If cOrigem == 'SA1'
+                cFiltro     :=  "'"+cPesquisa+"' $ A1_NOME  .OR. '"+cPesquisa+"' $ A1_NREDUZ .OR. '"+cPesquisa+"' $ A1_CGC  "
+            ElseIf cOrigem == 'SC5'
+                cFiltro     :=  "'"+cPesquisa+"' $ C5_NUM  .OR. '"+cPesquisa+"' $ C5_CLIENTE  .OR. '"+cPesquisa+"' $ C5_XNOMCLI"
+            ElseIf cOrigem == 'SF1'
+                cFiltro     :=  "'"+cPesquisa+"' $ F1_DOC  .OR. '"+cPesquisa+"' $ F1_FORNECE "
+            EndIf    
         else
             cFiltro     :=  ""
         EndIf
-        oBrowse:SetFilterDefault(cFiltro )
-        oBrowse:Refresh()
-                
+        
     EndIf    
+
+    oBrowse:SetFilterDefault(cFiltro )
+    oBrowse:Refresh()
+
 Return
 
 /*/{Protheus.doc} Tela para digitar a pesquisa a ser filtrada no browse

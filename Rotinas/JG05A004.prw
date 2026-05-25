@@ -13,7 +13,7 @@ User Function JG05A004()
 	Local cAliasSD2 := GetNextAlias()
 	Local cIdEnt	:= ""
 	local cFil := SC5->C5_FILIAL
-	Local aDanfe := {}
+	// Local aDanfe := {}
 	Local cDirPDF := SuperGetMV('MV_RELT',,"\SPOOL\")
 	Local i := 0
 	Local cErro := ""

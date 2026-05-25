@@ -12,13 +12,13 @@ Acrescentar botões no browse de clientes SA1
 User Function CRM980MDef()
     Local aRotina := {}
     Local cKey
-    cKey := SetKey(VK_F8, {|| U_PesqDina()})
+    cKey := SetKey(VK_F8, {|| U_PesqDina('SA1')})
     //----------------------------------------------------------------------------------------------------------
     // [n][1] - Nome da Funcionalidade
     // [n][2] - Função de Usuário
     // [n][3] - Operação (1-Pesquisa; 2-Visualização; 3-Inclusão; 4-Alteração; 5-Exclusão)
     // [n][4] - Acesso relacionado a rotina, se esta posição não for informada nenhum acesso será validado
     //----------------------------------------------------------------------------------------------------------
-    aAdd(aRotina,{"Pesquisa Dinamica","U_PesqDina()",1,0})
+    aAdd(aRotina,{"Pesquisa Dinamica","U_PesqDina('SA1')",1,0})
     
 Return( aRotina )

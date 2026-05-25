@@ -20,43 +20,49 @@
 ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
 */
 User Function JGRT001(_cCodProd)
-	Local _cChave     := Space(TamSX3("B1_COD")[1])
-	Local _cChvBar    := Space(TamSX3("B1_CODBAR")[1])
-	Local _cChvRFor   := Space(TamSX3("B1_XREFFOR")[1])
-	Local _cDesc	  := Space(TamSX3("B1_DESC")[1])
-	Local _cChvGr	  := Space(TamSX3("B1_GRUPO")[1]) //chave para grupo produto
-	Local _cChvFab	  := Space(TamSX3("B1_FABRIC")[1]) //chave para fabricante/marca
-	Local _cChvMod	  := Space(TamSX3("B1_MODELO")[1]) //chave para modelo
-	Local _aTitulos   := {}
-	Local cEmpBkp     := ""
-	Local cFilBkp     := ""
-	Local _cUFFil     := ""
-	Local aSM0Lista   := {}
-	Local ainfSM0     := {}
+	Local _cChave         := Space(TamSX3("B1_COD")[1])
+	Local _cChvBar        := Space(TamSX3("B1_CODBAR")[1])
+	Local _cChvRFor       := Space(TamSX3("B1_XREFFOR")[1])
+	Local _cDesc	      := Space(TamSX3("B1_DESC")[1])
+	Local _cChvGr	      := Space(TamSX3("B1_GRUPO")[1]) //chave para grupo produto
+	Local _cChvFab	      := Space(TamSX3("B1_FABRIC")[1]) //chave para fabricante/marca
+	Local _cChvMod	      := Space(TamSX3("B1_MODELO")[1]) //chave para modelo
+	Local _aTitulos       := {}
+	Local cEmpBkp         := ""
+	Local cFilBkp         := ""
+	Local _cUFFil         := ""
+	Local aSM0Lista       := {}
+	Local ainfSM0         := {}
+    Local aUserFils       := {}
 	Local nF
 
-	Local _aArea      := FWGetArea()
-	Local _aSM0       := SM0->( FWGetArea() )
-	Local _aDA1       := DA1->( FWGetArea() )
-	Local _aSF4       := SF4->( FWGetArea() )
-	Local _aSB5       := SB5->( FWGetArea() )
-	Local _aSA1       := SA1->( FWGetArea() )
-	Local _aSA2       := SA2->( FWGetArea() )
-	Local _aSY1       := SY1->( FWGetArea() )
+	Local _aArea          := FWGetArea()
+	Local _aSM0           := SM0->( FWGetArea() )
+	Local _aDA1           := DA1->( FWGetArea() )
+	Local _aSF4           := SF4->( FWGetArea() )
+	Local _aSB5           := SB5->( FWGetArea() )
+	Local _aSA1           := SA1->( FWGetArea() )
+	Local _aSA2           := SA2->( FWGetArea() )
+	Local _aSY1           := SY1->( FWGetArea() )
 
 	//Variáveis para guardar a definição do atalho de teclado para posterior restauração
-	Local bSetF11     := Nil
-	Local bSetF12     := Nil
+	Local bSetF11         := Nil
+	Local bSetF12         := Nil
 
-	// Local cJGGERLOJ   := SuperGetMV("JG_GERLOJ", .F., "XYZXYZ;") //Código dos acesssos que liberam a edição de pedidos de outros vendedores.
-	Local cCodVndLog  := POSICIONE("SA3",7,FWxFilial("SA3")+__CUSERID,"A3_COD")
-	Local cCarVndLog  := IIf(!Empty(cCodVndLog),POSICIONE("SA3",1,FWxFilial("SA3")+cCodVndLog,"A3_CARGO"),"") //Cargo do vendedor logado
+	// Local cJGGERLOJ       := SuperGetMV("JG_GERLOJ", .F., "XYZXYZ;") //Código dos acesssos que liberam a edição de pedidos de outros vendedores.
+	Local cCodVndLog      := POSICIONE("SA3",7,FWxFilial("SA3")+__CUSERID,"A3_COD")
+	Local cCarVndLog      := IIf(!Empty(cCodVndLog),POSICIONE("SA3",1,FWxFilial("SA3")+cCodVndLog,"A3_CARGO"),"") //Cargo do vendedor logado
 
-	Private lShwCusto := ( FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;000003;" ) ) // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
-	Private lShwPrcCompra := FWIsInCallStack("A120PEDIDO") .And. FWIsInCallStack("MATA120").And. FWIsInCallStack("MATA121") // Chamada de dentro do pedido de compra
+	// Private lShwCusto  := ( FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;000003;" ) ) // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
+	// Private lShwPrcCompra := FWIsInCallStack("A120PEDIDO") .And. FWIsInCallStack("MATA120") .And. FWIsInCallStack("MATA121") // Chamada de dentro do pedido de compra
 
-	Private _cFiliais := ""
-	Private _cRet     := ""
+	Private lShwCusto     := FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;" )                                         // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
+	Private lShwEstMatriz := FWIsInCallStack("MATA410") .Or. FWIsInCallStack("MATA415") .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000003;" ) // Chamada de dentro do pedido de venda ou orçamento
+	Private lShwPrcCompra := FWIsInCallStack("A120PEDIDO") .And. FWIsInCallStack("MATA120") .And. FWIsInCallStack("MATA121")                     // Chamada de dentro do pedido de compra
+
+	Private _cFiliais     := ""
+	Private _cUserFils    := ""
+	Private _cRet         := ""
 	Private _oBar
 	Private _oLbl1
 	Private _oLbl2
@@ -81,37 +87,37 @@ User Function JGRT001(_cCodProd)
 	Private _oSay81
 	Private _oSay82
 	Private _oFonte1
-	Private _nSld1    := 0
-	Private _nSld2    := 0
-	Private _nSld3    := 0
-	Private _nSld4    := 0
-	Private _nPrcVnd  := 0
-	Private _nDescon  := 0
-	Private _nPrcFab  := 0
-	Private _nPrcMax  := 0
-	Private _cTitulo  := "Consulta de produtos"
-	Private _aLegenda := {}
-	Private _aFiliais := {}
-	// Private _aSldB2   := {}
-	Private _aSldFil  := {}
-	Private _aProduto := {}
+	Private _nSld1        := 0
+	Private _nSld2        := 0
+	Private _nSld3        := 0
+	Private _nSld4        := 0
+	Private _nPrcVnd      := 0
+	Private _nDescon      := 0
+	Private _nPrcFab      := 0
+	Private _nPrcMax      := 0
+	Private _cTitulo      := "Consulta de produtos"
+	Private _aLegenda     := {}
+	Private _aFiliais     := {}
+	// Private _aSldB2      := {}
+	Private _aSldFil      := {}
+	Private _aProduto     := {}
 	// Private _aPreco	  := {}
-	Private nAcrecimo := 1
+	Private nAcrecimo     := 1
 	// Private aAreaSE4  := SE4->(FWGetArea())
 	//Private _aNotas		:={}
-	Private _aItens	  :={}
+	Private _aItens	      := {}
 	Private _oChave
 	Private _oDesc
 	Private oBut2
 	//Private oProd	:= SLR->LR_PRODUTO
-	Private _nEmpAtu  := 0 
-	Private lCheck1   := .F. 
-	Private lPromo    := .F.
+	Private _nEmpAtu      := 0 
+	Private lCheck1       := .F. 
+	Private lPromo        := .F.
 	Private aBUTTONS
 
 	Static _oDlg //Antes era private, esta ficando fora do foco do objeto, Esta focando no BROWSE
 
-	Default _cCodProd := Space(TamSX3("B1_COD")[1])
+	Default _cCodProd     := Space(TamSX3("B1_COD")[1])
 
 	// Cria a fonte para ser usada na montagenm da tela
 	_oFonte1  := TFont():New( "Arial",,14,,.T.)
@@ -133,22 +139,36 @@ User Function JGRT001(_cCodProd)
 
 	For nF:=1 To Len(aSM0Lista) 
 
-	If aSM0Lista[nF][nPEmpresa] == cEmpBkp
+		If aSM0Lista[nF][nPEmpresa] == cEmpBkp
 
-		aInfSM0 := FWSM0Util():GetSM0Data( cEmpBkp, aSM0Lista[nF][nPFilial], { "M0_ESTENT" } )
+			aInfSM0 := FWSM0Util():GetSM0Data( cEmpBkp, aSM0Lista[nF][nPFilial], { "M0_ESTENT" } )
 
-		If aInfSM0[1][2] == _cUFFil
-			If !Empty(_cFiliais)
-				_cFiliais += ","
+			If aInfSM0[1][2] == _cUFFil
+				If !Empty(_cFiliais)
+					_cFiliais += ","
+				EndIf
+				_cFiliais += ValToSql(aSM0Lista[nF][nPFilial])
 			EndIf
-			_cFiliais += ValToSql(aSM0Lista[nF][nPFilial])
-		EndIf
-		ASize(aInfSM0,0)
+			ASize(aInfSM0,0)
 
-	EndIf
+		EndIf
 
 	Next nF
 	ASize(aSM0Lista,0)
+
+	// Carrega filiais do usuário
+    aUserFils  := LoadFils()
+	_cUserFils := ""
+
+	For nF:=1 To Len(aUserFils) 
+
+		If !Empty(_cUserFils)
+			_cUserFils += ","
+		EndIf
+		_cUserFils += ValToSql(aUserFils[nF])
+
+	Next nF
+	ASize(aUserFils,0)
 
 	// Restauração da empresa e filial corrente
 	cEmpAnt := cEmpBkp
@@ -331,7 +351,7 @@ lScroll		Lógico				Ativa/Desativa a visualização da barra de rolagem (scroll)
 		Processa({|| _oPesqSB1(,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChvRFor,_cChvMod) },"Pesquisando produto...")
 	EndIf
 
-	ACTIVATE MsDIALOG _oDlg ON INIT ENCHOICEBAR(_oDlg,{|| PosProd(_aProduto[_oListBox:nAT][02]),_oDlg:END()},{|| /*IIF(Empty(_cCodProd),PosProd("XXXXXXXXXX",2),PosProd(_cCodProd)),*/ _oDlg:END()},,aBUTTONS) CENTERED
+	ACTIVATE MsDIALOG _oDlg ON INIT ENCHOICEBAR(_oDlg, {|| PosProd(_aProduto[_oListBox:nAT][02]), _oDlg:END()}, {|| _oDlg:END()}, , aBUTTONS) CENTERED
 
 	// ACTIVATE MsDIALOG _oDlg CENTERED
 	// Desabilita as teclas F4, F5, F6, F7
@@ -346,8 +366,8 @@ lScroll		Lógico				Ativa/Desativa a visualização da barra de rolagem (scroll)
 	FWRestArea(_aSY1)
 	FWRestArea(_aArea)
 
-	bSetF12 := SetKey( VK_F12, bSetF12 )
-	bSetF11 := SetKey( VK_F11, bSetF11 )
+	SetKey( VK_F12, bSetF12 )
+	SetKey( VK_F11, bSetF11 )
 
 	_auxRet := .F.
 
@@ -532,11 +552,18 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChv
 
 	// If !lShwSemEstoque // caso seja marcado o checkbox para consultar, inclusive, produtos sem estoque ou se for o início da pesquisa
 		_cQuery += "     LEFT JOIN  "+RetSqlName("SB2")+" SB2 ON SB2.D_E_L_E_T_ <> '*' AND SB2.B2_COD = SB1.B1_COD " + CRLF
+		If !FwIsAdmin()
+			If !lShwCusto
+				_cQuery += "AND B2_FILIAL = "+ValToSql(IIf(cFilAnt=="0104", "0101", cFilAnt))+" " + CRLF
+			Else
+				_cQuery += "AND ( B2_FILIAL = "+ValToSql(IIf(cFilAnt=="0104", "0101", cFilAnt))+" OR B2_FILIAL IN ("+_cUserFils+") ) " + CRLF
+			EndIf
+		EndIf
 	// EndIf
 
 	_cQuery += " WHERE " + CRLF
 	_cQuery += "     SB1.D_E_L_E_T_ <> '*' " + CRLF
-	_cQuery += "     AND B1_FILIAL = "+ValToSql(FWxFilial('SB1')) + CRLF
+	_cQuery += "     AND B1_FILIAL = "+ValToSql(FWxFilial('SB1'))+" " + CRLF
 	_cQuery += "     AND B1_MSBLQL <> '1' " + CRLF
 
 	If !lShwSemEstoque // caso seja marcado o checkbox para consultar, inclusive, produtos sem estoque ou se for o início da pesquisa
@@ -876,10 +903,10 @@ Static Function _oChgProd(_cOpc, _cFilial)
 		_cQuery  += "     CASE "+CRLF
 		_cQuery  += "                    WHEN B2_FILIAL = "+ValToSql(cFilAnt)+" THEN '1' "+CRLF
 		_cQuery  += "                    WHEN B2_FILIAL = '0101' THEN '2' "+CRLF
-		// If !Empty(_cFiliais)
-		// 	_cQuery  += "                    WHEN B2_FILIAL IN ("+_cFiliais+") THEN '3' "+CRLF
-		// EndIf
-		_cQuery  += "                    ELSE '3' "+CRLF
+		If !Empty(_cFiliais)
+			_cQuery  += "                    WHEN B2_FILIAL IN ("+_cFiliais+") THEN '3' "+CRLF
+		EndIf
+		_cQuery  += "                    ELSE '4' "+CRLF
 		_cQuery  += "     END AS PRIORIZA_FILIAL, "+CRLF
 		_cQuery  += "     B2_FILIAL AS FILIAL, B2_LOCAL AS LOCPAD, B2_QATU AS ATUAL, "+CRLF
 		_cQuery  += "     (B2_QATU - B2_RESERVA - B2_QEMP) AS SALDO, B2_RESERVA AS RESERVA, B2_QEMP AS EMPENHO, B2_SALPEDI AS SALPED, 0 AS SALCOM "+CRLF
@@ -900,6 +927,13 @@ Static Function _oChgProd(_cOpc, _cFilial)
 		_cQuery  += "     SB2.D_E_L_E_T_ <> '*' "+CRLF
 		_cQuery  += "     AND ( B2_QATU > 0 OR (B2_QATU - B2_RESERVA - B2_QEMP) < 0 )"+CRLF
 		_cQuery  += "     AND B2_COD = '"+_aProduto[_oListBox:nAT][2]+"' "+CRLF
+		If !FwIsAdmin()
+			If !lShwCusto
+				_cQuery += "AND B2_FILIAL = "+ValToSql(IIf(cFilAnt=="0104", "0101", cFilAnt))+" " + CRLF
+			Else
+				_cQuery += "AND ( B2_FILIAL = "+ValToSql(IIf(cFilAnt=="0104", "0101", cFilAnt))+" OR B2_FILIAL IN ("+_cUserFils+") ) " + CRLF
+			EndIf
+		EndIf
 		_cQuery  += "ORDER BY "+CRLF
 		_cQuery  += "     PRIORIZA_FILIAL, FILIAL, LOCPAD "+CRLF
 
@@ -968,15 +1002,10 @@ Return
 ±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
 ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
 */
-Static Function PosProd(_cProd,_xnopc)
-	If _xnopc = 2
-		//dbSelectArea("SB1")
-		SB1->( dbSetOrder(1) )
-		SB1->( dbGoTop() )
-	Else
-		//dbSelectArea("SB1")
-		SB1->( dbSetOrder(1) )
-		SB1->( dbSeek( FWxFilial("SB1")+_cProd ) )
+Static Function PosProd(_cProd)
+	//dbSelectArea("SB1")
+	SB1->( dbSetOrder(1) )
+	If SB1->( DbSeek( FWxFilial("SB1")+_cProd ) ) .And. SB1->B1_FILIAL == FWxFilial("SB1") .And. SB1->B1_COD == _cProd
 		_cRet := _cProd
 		//	_cRet := SPACE(TAMSX3("B1_COD")[1])
 	EndIf
@@ -1050,47 +1079,6 @@ User Function ESPECIF_PROD(_CCODPRO)
 	ACTIVATE DIALOG oDlg CENTERED 
 Return
 
-
-/*
-ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ
-±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
-±±ÉÍÍÍÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍËÍÍÍÍÍÍÑÍÍÍÍÍÍÍÍÍÍÍÍÍ»±±
-±±ºPrograma  fTipoDb    ºAutor  ³Microsiga           º Data ³  08/18/11   º±±
-±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÊÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
-±±ºDesc.     ³                                                            º±±
-±±º          ³                                                            º±±
-±±ÌÍÍÍÍÍÍÍÍÍÍØÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¹±±
-±±ºUso       ³ AP                                                        º±±
-±±ÈÍÍÍÍÍÍÍÍÍÍÏÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼±±
-±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
-ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
-*/
-
-Static Function fTipoDb()
-	// Local cEnvServer := GetEnvServer()
-    Local cDBType    := Upper(GetSrvProfString("dbdataBase", ""))
-	Local cRetDb     := ""
-
-    // Ajuste o nome da seção conforme configurado no seu ambiente.
-    // O nome da seção pode ser [MSSQL] ou [ORACLE] ou similar.
-
-    If "ORACLE" $ cDBType
-        cRetDb := "ORACLE"
-    ElseIf "DB2" $ cDBType
-        cRetDb := "DB2"
-    ElseIf "POSTGRES" $ Upper(cDBType)
-        cRetDb := "POSTGRES"
-    ElseIf "INFORMIX" $ Upper(cDBType)
-        cRetDb := "INFORMIX"
-    ElseIf "SQLITE" $ Upper(cDBType)
-        cRetDb := "SQLITE"
-    ElseIf "MSSQL" $ Upper(cDBType)
-        cRetDb := "MSSQL"
-    Else
-        cRetDb := "MSSQL"
-    EndIf
-
-Return cRetDb
 
 /*
 ÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜÜ

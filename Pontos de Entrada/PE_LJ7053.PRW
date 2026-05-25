@@ -14,7 +14,10 @@ User Function LJ7053()
     Local aRotina := {}
 
     cKey := SetKey(VK_F8, {|| U_ImpOrcPed()})    
-    aadd(aRotina,{'Impressão JG','U_ImpOrcPed()'     , 0 , 1, NIL, .F.})
 
+    AAdd(aRotina,{"JG - Impressão do Orçamento",        "U_ImpOrcPed()" , 0 , 1, NIL, .F.})
+    If FindFunction("U_JGRT010")
+        AAdd(aRotina,{'JG - Liberação p/ Transferência',    "U_JGRT010()"   , 0 , 4, NIL, .F.})
+    EndIf
 
 Return aRotina

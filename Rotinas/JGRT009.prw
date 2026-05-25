@@ -1,20 +1,16 @@
-#include "TOTVS.CH"
+#Include "Totvs.ch"
 
-/*--------------------------------------------------------------------------------------------------
-Função: JGRT009
-Tipo: Função usuario
-Descrição: Rotina para custo após entrada por compra
-Uso: JG
-Parâmetros:	
-Retorno: 
-----------------------------------------------------------------------------------------------------
-Autor: Lorran Ferreira
-Data : 28/03/2019
-----------------------------------------------------------------------------------------------------
-Atualizações: 
-30/01/2026 - Jesus Ramos - Ajustes para implantação na JG
-----------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------*/
+/*/{Protheus.doc} JGRT009
+Função para retornar o nome do cliente ou fornecedor conforme os parâmetros informados, buscando nas tabelas SA1 (clientes) ou SA2 (fornecedores).
+@type function
+@version  
+@author Samsung
+@since 28/04/2026
+@param cTpCliFor, character, param_description
+@param cCodCliFor, character, param_description
+@param cLojCliFor, character, param_description
+@return variant, return_description
+/*/
 User Function JGRT009(cTpCliFor, cCodCliFor, cLojCliFor)
 
 	Local aAreaSA1   := SA1->(FWGetArea())

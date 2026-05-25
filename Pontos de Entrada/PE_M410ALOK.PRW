@@ -14,21 +14,33 @@ User Function M410ALOK
 	Local lRetorno    := .T.
 
 	If !Empty(SC5->C5_NOTA)
-		lRetorno := .F.
 		If ALTERA //Alteração
 			FwAlertError("O pedido já está faturado.","ATENÇÃO - Alteração")
+			lRetorno := .F.
 		ElseIf !INCLUI .And. !ALTERA //Exclusão
 			FwAlertError("O pedido já está faturado.","ATENÇÃO - Exclusão")
-		ElseIf INCLUI .And. FWIsInCallStack("A410COPIA") //Cópia
-			If FwIsAdmin()
-				lRetorno := .T.
-			Else
-				FwAlertError("O pedido já está faturado.","ATENÇÃO - Cópia")
-			EndIf
+			lRetorno := .F.
+
+		// ElseIf INCLUI .And. FWIsInCallStack("A410COPIA") //Cópia
+		// 	If FwIsAdmin()
+		// 		lRetorno := .T.
+		// 	Else
+		// 		FwAlertError("O pedido já está faturado.","ATENÇÃO - Cópia")
+		// 	EndIf
+
 		EndIf
+
 	EndIf
 
 	RestArea(aAreaSC5)
 	RestArea(aArea)
+
+	If lRetorno
+		If Type("__bkKCtrlL") == "U"
+			Public __bkKCtrlL
+		EndIf
+		__bkKCtrlL := SetKey( K_CTRL_L ) //Guarda a configuração atual da tecla CTRL+L
+		SetKey( K_CTRL_L, {|| U_JGRT007()} ) //Atalho para seleção do lote/sublote/validade
+	EndIf
 
 Return(lRetorno)
