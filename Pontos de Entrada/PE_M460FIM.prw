@@ -1,10 +1,5 @@
-#Include 'Protheus.ch'
-#Include 'TbiConn.ch'
-#Include 'TopConn.ch'
-#INCLUDE "rwmake.ch"
-#INCLUDE "TOTVS.CH"
-#include "RPTDEF.CH"
-#include "FWPRINTSETUP.CH"
+#include "Totvs.ch"
+
 /*/{Protheus.doc} M460FIM
 Ponto de entrada após a gravação da Nota Fiscal de Saída.
 Questiona geração de boleto e borderô.
@@ -38,41 +33,58 @@ User Function M460FIM()
         cFormaPg := AllTrim( SE4->E4_FORMA )
     EndIf
 
-    // Se for PIX ou Dinheiro, não gera a Nota Promissória
-    If ! cFormaPg $ "PX|R$|CC|CD"
-        Processa({|| U_JG05A001(cNota, cSerie) }, "Processando Nota Promissória...")
-    EndIf
+    // Tratamentos para as notas de tipo N-Normal.
+    If SC5->C5_TIPO == "N"
 
-    //Geração de boleto, conforma a forma de pagamento no cadastro da condição de pagamento
-    If lGeraBol .And. ALLTRIM(cFormaPg) == "BOL" //"BOL   "
-    
-        // Pergunta ao usuário
-        If MsgYesNo("A Nota Fiscal <b>" + cNota + "</b> foi emitida." + CRLF + CRLF + "Deseja imprimir o Boleto agora?", "Emissão Boleto (M460FIM)")
-            DbSelectArea("SA3")
-            DbSelectArea("SED")
-            DbSelectArea("SEE")
-            DbSelectArea("SE1")
-            DbSelectArea("SEA")
+        // Se for transferência, atualiza o status para "Autorizar", caso esteja como "Faturar", indicando ao job para monitorar o retorno da SEFAZ.
+        // Também, pula as demais validações.
+        If !Empty(SC5->C5_XMOVTRF)
 
-            //Impressão de Boletos
-//            Processa({|| U_JG05A002(cNota, cSerie, cCliente, cLoja, cBolNew) }, "Processando Boletos...")
-            Processa({|| U_JG05A002(cNota, cSerie, cCliente, cLoja) }, "Processando Boletos...")
-            if File(Lower("\spool\boleto_bancario_"+cNota+".pdf"))
-					lRet := .t.
-					cPasta   := "C:\Temp\"
-					cArquivo := Lower("boleto_bancario_"+cNota+".pdf")
+            If SC5->C5_XMOVTRF == JGTrPVPFt
+                U_JGRT11_E(SC5->(Recno()), JGTrPVNPA, JGTrOrNPA)
+            EndIf
 
-					lCopiou := CpyS2T( Lower("\spool\boleto_bancario_"+cNota+".pdf"), cPasta )
+        Else
 
-					If lCopiou
+            // Se for PIX ou Dinheiro, não gera a Nota Promissória
+            If ! cFormaPg $ "PX|R$|CC|CD"
+                Processa({|| U_JG05A001(cNota, cSerie) }, "Processando Nota Promissória...")
+            EndIf
 
-						//ShellExecute("OPEN", cArquivo, "", cPasta, 1)
+            //Geração de boleto, conforma a forma de pagamento no cadastro da condição de pagamento
+            If lGeraBol .And. ALLTRIM(cFormaPg) == "BOL" //"BOL   "
+            
+                // Pergunta ao usuário
+                If MsgYesNo("A Nota Fiscal <b>" + cNota + "</b> foi emitida." + CRLF + CRLF + "Deseja imprimir o Boleto agora?", "Emissão Boleto (M460FIM)")
+                    DbSelectArea("SA3")
+                    DbSelectArea("SED")
+                    DbSelectArea("SEE")
+                    DbSelectArea("SE1")
+                    DbSelectArea("SEA")
 
-					Else
+                    //Impressão de Boletos
+                    //Processa({|| U_JG05A002(cNota, cSerie, cCliente, cLoja, cBolNew) }, "Processando Boletos...")
+                    Processa({|| U_JG05A002(cNota, cSerie, cCliente, cLoja) }, "Processando Boletos...")
+                    If File(Lower("\spool\boleto_bancario_"+cNota+".pdf"))
+                        lRet := .t.
+                        cPasta   := "C:\Temp\"
+                        cArquivo := Lower("boleto_bancario_"+cNota+".pdf")
 
-						alert("Boleto bancário não pode ser copiado.")
-					EndIF
-                endIf
+                        lCopiou := CpyS2T( Lower("\spool\boleto_bancario_"+cNota+".pdf"), cPasta )
+
+                        If lCopiou
+
+                            //ShellExecute("OPEN", cArquivo, "", cPasta, 1)
+
+                        Else
+
+                            alert("Boleto bancário não pode ser copiado.")
+                        EndIf
+                    EndIf
+                EndIf
+        
+            EndIf
+
         EndIf
     
     EndIf

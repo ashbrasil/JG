@@ -29,15 +29,17 @@ User Function JGRT011()
 	oBrowse:SetAlias('SC5')
 
 	// Definição da legenda
-	oBrowse:AddLegend( "ALLTRIM(C5_NOTA) == 'XXXXXX'" 					, "BLACK"		, "PV Transferência Cancelado"        )
-	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVPSp)	, "WHITE"		, "PV Pendente Separar"               )
-	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVPFt)	, "YELLOW"		, "PV Pendente Faturar"               )
-	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVNPA)	, "ORANGE"		, "NF Pendente Autorizar"             )
-	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVNPE)	, "BLUE"		, "NF Pendente Entrada no Destino"    )
-	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVOK) 	, "GREEN"		, "Transferência Concluída"           )
-	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVExD) 	, "BROWN"		, "NF de Entrada excluída no Destino" )
-	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVExO) 	, "RED"			, "NF de Saída excluída na Origem"    )
-	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVCan) 	, "BLACK"		, "Transferência Cancelada"           )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVPSp)	, "BR_BRANCO"	, U_fDsStTrf( "P", JGTrPVPSp )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVPFt)	, "BR_AMARELO"	, U_fDsStTrf( "P", JGTrPVPFt )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVNPA)	, "BR_LARANJA"	, U_fDsStTrf( "P", JGTrPVNPA )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVNPE)	, "BR_AZUL"		, U_fDsStTrf( "P", JGTrPVNPE )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVOK ) 	, "CHECKOK"		, U_fDsStTrf( "P", JGTrPVOK  )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVEPL ) 	, "BR_VIOLETA"	, U_fDsStTrf( "P", JGTrPVEPL )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVExD) 	, "BR_MARROM"	, U_fDsStTrf( "P", JGTrPVExD )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVExO) 	, "BR_VERMELHO"	, U_fDsStTrf( "P", JGTrPVExO )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVOS ) 	, "CLIPS"		, U_fDsStTrf( "P", JGTrPVOS  )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_XMOVTRF) == "+ValToSql(JGTrPVCan) 	, "BR_CANCEL"	, U_fDsStTrf( "P", JGTrPVCan )    )
+	oBrowse:AddLegend( "ALLTRIM(C5_NOTA) == 'XXXXXX'" 					, "BR_PRETO"	, "PV de Transferência Cancelado" )
 
 	// Definição de filtro
 	oBrowse:SetFilterDefault( " !Empty(C5_XMOVTRF) " )
@@ -70,14 +72,14 @@ Return NIL
 Static Function MenuDef()
 	Local aRotina := {}
 	
-	ADD OPTION aRotina TITLE 'Visualizar' 					ACTION 'a410Visual'	 	OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 2
-	ADD OPTION aRotina TITLE 'Incluir'    					ACTION 'U_JGRT011A' 	OPERATION MODEL_OPERATION_INSERT ACCESS 0 //OPERATION 3
-	ADD OPTION aRotina TITLE 'Gerar/Imprimir Danfe'			ACTION 'U_JGRT11_A' 	OPERATION 7                      ACCESS 0 //OPERATION 7
-	ADD OPTION aRotina TITLE 'Gerar Entrada Destino' 		ACTION 'U_JGRT11_B' 	OPERATION 7                      ACCESS 0 //OPERATION 7
-	ADD OPTION aRotina TITLE 'Liberar Separação do Pedido'	ACTION 'U_JGRT11_C' 	OPERATION 7                      ACCESS 0 //OPERATION 7
-	ADD OPTION aRotina TITLE 'Cancelar a Transferência'		ACTION 'U_JGRT11_G' 	OPERATION 7                      ACCESS 0 //OPERATION 7
+	ADD OPTION aRotina TITLE 'Visualizar' 					ACTION 'a410Visual()'	 	OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 2
+	ADD OPTION aRotina TITLE 'Incluir'    					ACTION 'U_JGRT011A()' 	OPERATION MODEL_OPERATION_INSERT ACCESS 0 //OPERATION 3
+	ADD OPTION aRotina TITLE 'Gerar/Imprimir Danfe'			ACTION 'U_JGRT11_A()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
+	ADD OPTION aRotina TITLE 'Gerar Entrada Destino' 		ACTION 'U_JGRT11_B()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
+	ADD OPTION aRotina TITLE 'Liberar Separação do Pedido'	ACTION 'U_JGRT11_C()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
+	ADD OPTION aRotina TITLE 'Cancelar a Transferência'		ACTION 'U_JGRT11_G()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
 	If FWIsAdmin()
-		ADD OPTION aRotina TITLE 'Executa Job Manualmente' 		ACTION 'U_JGRT11_J' 	OPERATION 7                      ACCESS 0 //OPERATION 7
+		ADD OPTION aRotina TITLE 'Executa Job Manualmente' 		ACTION 'U_JGRT11_J()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
 	EndIf
 
 Return aRotina
@@ -562,34 +564,56 @@ Return cNewStOrc
 @since   22/05/2026
 @return  Nil
 /*/
-User Function JGRT11_G()
+User Function JGRT11_G(p_Ms520Del)
 	Local cRet       As String
 	Local cIdMov     As String
 	Local nRecnoPed  As Numeric
 	Local nItensPed  As Numeric
 	Local nSemOrdSep As Numeric
 	Local nOrdNaoFin As Numeric
+	Local cMsgRes    As String
+
+	Default p_Ms520Del := .F.
 
 	nRecnoPed  := SC5->(Recno())
 	cRet       := ""
 	nItensPed  := 0
 	nSemOrdSep := 0
 	nOrdNaoFin := 0
+	cMsgRes    := ""
+
+	cIdMov := "["+SC5->C5_FILIAL +"-"+ SC5->C5_XFILTRF +"-"+ SC5->C5_NUM +"]"
+	U_FLOGJG(cIdMov+" -Antes U_JGRT11G1 - Cancela Transferência (Residua)"+" Time:"+TIME())
 
 	// Valida os campos necessários para autorizar o resíduo do pedido de transferência
-	If !(SC5->C5_XMOVTRF $ JGTrPVPSp+"/"+JGTrPVPFt+"/"+JGTrPVExO) // O pedido precisa estar com status Pendente de Separação ou Pendente de Faturamento.
+	If !(SC5->C5_XMOVTRF $ JGTrPVPSp+"/"+JGTrPVPFt+"/"+JGTrPVExO+"/"+JGTrPVOS) // O pedido precisa estar com status Pendente de Separação ou Pendente de Faturamento.
 
-		FWAlertWarning(OemToAnsi("O pedido precisa estar com os seguintes status:"+CRLF+CRLF+;
-									"  -> Pendente de Separação"+CRLF+;
-									"  -> Pendente de Faturamento"), OemToAnsi("Cancelamento da Transferência"))
+		cMsgRes := "O pedido precisa estar com os seguintes status:"+CRLF+CRLF+;
+					"  -> Pendente de Separação"+CRLF+;
+					"  -> Pendente de Faturamento"
+		If IsBlind() .Or. p_Ms520Del
+			U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+		Else
+			FWAlertWarning(OemToAnsi(cMsgRes), OemToAnsi("Cancelamento da Transferência"))
+		EndIf
 
 	ElseIf "X" $ SC5->C5_NOTA // Pedido já residuado não entra na Rotina
 
-		FWAlertWarning(OemToAnsi("O pedido já se encontra residuado."), OemToAnsi("Cancelamento da Transferência"))
+		cMsgRes := "O pedido já se encontra residuado."
+		If IsBlind() .Or. p_Ms520Del
+			U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+		Else
+			FWAlertWarning(OemToAnsi(cMsgRes), OemToAnsi("Cancelamento da Transferência"))
+		EndIf
 
 	ElseIf !Empty(SC5->C5_NOTA) // Pedido já faturado não entra na Rotina
 
-		FWAlertWarning(OemToAnsi("O pedido já se encontra faturado, não sendo possível efetuar seu cancelamento/resíduo."), OemToAnsi("Cancelamento da Transferência"))
+		cMsgRes := "O pedido já se encontra faturado, não sendo possível efetuar seu cancelamento/resíduo."
+		If IsBlind() .Or. p_Ms520Del
+			U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+		Else
+			FWAlertWarning(OemToAnsi(cMsgRes), OemToAnsi("Cancelamento da Transferência"))
+		EndIf
 
 	Else
 
@@ -598,61 +622,116 @@ User Function JGRT11_G()
 	    nOrdNaoFin   := fOrdNaoFin(SC5->C5_FILIAL, SC5->C5_NUM)
 
 	    If nItensPed = 0
-			FWAlertWarning(OemToAnsi("Não foram localizados itens para o pedido."+CRLF+;
-										"Verifique se o pedido ainda existe lançado no sistema."), OemToAnsi("Atenção"))
+
+			cMsgRes := "Não foram localizados itens para o pedido."
+			If IsBlind() .Or. p_Ms520Del
+				U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+			Else
+				FWAlertWarning(OemToAnsi(cMsgRes), OemToAnsi("Atenção"))
+			EndIf
+
 	    ElseIf nSemOrdSep < nItensPed .Or. nOrdNaoFin > 0
-			FWAlertWarning(OemToAnsi("Existem ordens de separação vinculadas a este pedido."+CRLF+CRLF+;
-										"Para que seja possível o cancelamento deste pedido, faz-se necessário cancelar/excluir/estornar "+;
-										"as ordens de separação."), OemToAnsi("Atenção"))
+
+			cMsgRes := "Existem ordens de separação vinculadas a este pedido."+CRLF+CRLF+;
+						"Para que seja possível o cancelamento deste pedido, faz-se necessário cancelar/excluir/estornar "+;
+						"as ordens de separação."
+
+			If p_Ms520Del .Or. SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+				If SC5->C5_XMOVTRF $ JGTrPVPSp+"/"+JGTrPVPFt+"/"+JGTrPVExO+"/"+JGTrPVOS
+					U_JGRT11_E(SC5->(Recno()), JGTrPVOS, JGTrOrOS)//Grava Status no Pedido
+					U_JGRT11_D("P", SC5->(Recno()), DToC(Date()) + " - Time:"+TIME() + " - "+cMsgRes)//Grava Status no Pedido e no Orçamento
+				EndIf
+				If !p_Ms520Del .And. IsLocked("SC5", SC5->(Recno()))
+					SC5->(MsrUnlock()) //Libera o SoftLock
+				EndIf
+			EndIf
+
+			If IsBlind() .Or. p_Ms520Del
+				U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+			Else
+				FWAlertWarning(OemToAnsi(cMsgRes), OemToAnsi("Atenção"))
+			EndIf
 
 		Else
 
-			If FWAlertYesNo(OemToAnsi("Confirma o cancelamento desta transferência?"), OemToAnsi("Cancelamento da Transferência"))
+			If IsBlind() .Or. FWAlertYesNo(OemToAnsi("Confirma o cancelamento desta transferência?"), OemToAnsi("Cancelamento da Transferência"))
 
 				SC5->(DbGoTo(nRecnoPed))
 
 				If !SC5->(Deleted())
 
-					cIdMov := ""
+					// cIdMov := ""
 
-					If SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+					If p_Ms520Del .Or. SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
 
-						If SC5->C5_XMOVTRF $ JGTrPVPSp+"/"+JGTrPVPFt
+						If SC5->C5_XMOVTRF $ JGTrPVPSp+"/"+JGTrPVPFt+"/"+JGTrPVExO
 
-							cIdMov := "["+SC5->C5_FILIAL +"-"+ SC5->C5_XFILTRF +"-"+ SC5->C5_NUM +"]"
+							// cIdMov := "["+SC5->C5_FILIAL +"-"+ SC5->C5_XFILTRF +"-"+ SC5->C5_NUM +"]"
 							U_FLOGJG(cIdMov+" Antes U_JGRT11G1 - Cancela Transferência (Residua)"+" Time:"+TIME())
 
 							cRet := ""
-							FWMsgRun(, {|oSay| cRet := U_JGRT11G1() }, "Processando o cancelamento da transferência selecionada...", "Aguarde, processando a rotina" )
+							If IsBlind() .Or. p_Ms520Del
+								cRet := U_JGRT11G1()
+							Else
+								FWMsgRun(, {|oSay| cRet := U_JGRT11G1() }, "Processando o cancelamento da transferência selecionada...", "Aguarde, processando a rotina" )
+							EndIf
 
 							U_FLOGJG(cIdMov+" Retorno: "+IIf(Empty(cRet),"Sucesso",cRet)+" Time:"+TIME())
 							U_FLOGJG(cIdMov+" Depois U_JGRT11G1 - Cancela Transferência (Residua)"+" Time:"+TIME())
 
 							If Empty(cRet)
-								FWAlertSuccess("O cancelamento da transferência foi processado com sucesso.", "Transferência cancelada")
+								cMsgRes := "O cancelamento da transferência foi processado com sucesso."
+								If IsBlind() .Or. p_Ms520Del
+									U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+								Else
+									FWAlertSuccess(OemToAnsi(cMsgRes), OemToAnsi("Transferência cancelada"))
+								EndIf
 							Else
-								FWAlertError(cRet, "Falha no cancelamento")
+								If IsBlind() .Or. p_Ms520Del
+									U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+								Else
+									FWAlertError(OemToAnsi(cRet), OemToAnsi("Falha no cancelamento"))
+								EndIf
 							EndIf
 
 						Else
-							FWAlertInfo(OemToAnsi("O pedido mudou de situação durante a confirmação da rotina."+CRLF+CRLF+;
-													"Reavalie a necessidade de execução."), OemToAnsi("Status"))
+
+							cMsgRes := "O pedido mudou de situação durante a confirmação da rotina."+CRLF+CRLF+;
+										"Reavalie a necessidade de execução."
+							If IsBlind() .Or. p_Ms520Del
+								U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+							Else
+								FWAlertInfo(OemToAnsi(cMsgRes), OemToAnsi("Status"))
+							EndIf
+
 						EndIf
 
-						If IsLocked("SC5", SC5->(Recno()))
+						If !p_Ms520Del .And. IsLocked("SC5", SC5->(Recno()))
 							SC5->(MsrUnlock()) //Libera o SoftLock
 						EndIf
 
 					Else
-						FWAlertInfo(OemToAnsi("Não foi possível reservar o pedido para efetuarmos o cancelamento/resíduo."+CRLF+;
-												"Algum outro processo está bloqueando este pedido."+CRLF+CRLF+;
-												"Saia e tente novamente."), OemToAnsi("Bloqueado"))
+
+						cMsgRes := "Não foi possível reservar o pedido para efetuarmos o cancelamento/resíduo."+CRLF+;
+									"Algum outro processo está bloqueando este pedido."+CRLF+CRLF+;
+									"Saia e tente novamente."
+						If IsBlind() .Or. p_Ms520Del
+							U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+						Else
+							FWAlertInfo(OemToAnsi(cMsgRes), OemToAnsi("Bloqueado"))
+						EndIf
 
 					EndIf
 
 				Else
-					FWAlertError(OemToAnsi("O pedido foi excluído enquanto preparávamos para iniciar."+CRLF+CRLF+;
-											"O cancelamento/resíduo não poderá prosseguir. Saia e verifique a situação real do pedido."), OemToAnsi("Atenção"))
+
+					cMsgRes := "O pedido foi excluído enquanto preparávamos para iniciar."+CRLF+CRLF+;
+								"O cancelamento/resíduo não poderá prosseguir. Saia e verifique a situação real do pedido."
+					If IsBlind() .Or. p_Ms520Del
+						U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+					Else
+						FWAlertError(OemToAnsi(cMsgRes), OemToAnsi("Atenção"))
+					EndIf
 
 				EndIf
 

@@ -56,7 +56,7 @@ User Function JGRT001(_cCodProd)
 	// Private lShwCusto  := ( FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;000003;" ) ) // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
 	// Private lShwPrcCompra := FWIsInCallStack("A120PEDIDO") .And. FWIsInCallStack("MATA120") .And. FWIsInCallStack("MATA121") // Chamada de dentro do pedido de compra
 
-	Private lShwCusto     := FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;" )                                         // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
+	Private lShwCusto     := FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;000003;" )                                         // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
 	Private lShwEstMatriz := FWIsInCallStack("MATA410") .Or. FWIsInCallStack("MATA415") .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000003;" ) // Chamada de dentro do pedido de venda ou orçamento
 	Private lShwPrcCompra := FWIsInCallStack("A120PEDIDO") .And. FWIsInCallStack("MATA120") .And. FWIsInCallStack("MATA121")                     // Chamada de dentro do pedido de compra
 
@@ -221,17 +221,19 @@ User Function JGRT001(_cCodProd)
 	// Cria listbox com os dados dos produtos conforme a tabela temporaria criada 
 	If lShwPrcCompra
 		AAdd(_aProduto, {"","","","","","","","","","","","","","",""} )
-		AAdd(_aTitulos, { "", "Codigo", "Descrição", "Tipo", "UM", "Preço", "2aUM", "Preço 2aUM", "Custo", "Últ.Compra", "Ref.Fornecedor", "Marca", "Modelo", "Gr Trib", "Grupo"})
-		AAdd(_aTitulos, { 06, 50      , 150        , 12    , 12  , 35     , 12    , 35          , 35     , 35          , 60              , 60     , 45      , 35       , 30      })
+		AAdd(_aTitulos, { "", "Codigo", "Descrição", "Marca", "Ref.Fornecedor", "UM", "Preço", "Custo", "Gr Trib", "Grupo", "Tipo", "2aUM", "Preço 2aUM", "Últ.Compra", "Modelo"})
+		AAdd(_aTitulos, { 06, 50      , 150        , 60     , 60              , 12  , 35     , 35     , 35       , 30     , 12    , 12    , 35          , 35          , 45      })
 	ElseIf lShwCusto
 		AAdd(_aProduto, {"","","","","","","","","","","","","",""} )
-		AAdd(_aTitulos, { "", "Codigo", "Descrição", "Tipo", "UM", "Preço", "2aUM", "Preço 2aUM", "Custo", "Ref.Fornecedor", "Marca", "Modelo", "Gr Trib", "Grupo"})
-		AAdd(_aTitulos, { 06, 50      , 150        , 12    , 12  , 35     , 12    , 35          , 35     , 60              , 60     , 45      , 35       , 30      })
+		AAdd(_aTitulos, { "", "Codigo", "Descrição", "Marca", "Ref.Fornecedor", "UM", "Preço", "Custo", "Gr Trib", "Grupo", "Tipo", "2aUM", "Preço 2aUM", "Modelo"})
+		AAdd(_aTitulos, { 06, 50      , 150        , 60     , 60              , 12  , 35     , 35     , 35       , 30     , 12    , 12    , 35          , 45      })
 	Else
 		AAdd(_aProduto, {"","","","","","","","","","","","",""} )
-		AAdd(_aTitulos, { "", "Codigo", "Descrição", "Tipo", "UM", "Preço", "2aUM", "Preço 2aUM", "Ref.Fornecedor", "Marca", "Modelo", "Gr Trib", "Grupo"})
-		AAdd(_aTitulos, { 06, 50      , 150        , 12    , 12  , 35     , 12    , 35          , 60              , 60     , 45     , 35       , 30      })
+		AAdd(_aTitulos, { "", "Codigo", "Descrição", "Marca", "Ref.Fornecedor", "UM", "Preço", "Gr Trib", "Grupo", "Tipo", "2aUM", "Preço 2aUM", "Modelo"})
+		AAdd(_aTitulos, { 06, 50      , 150        , 60     , 60              , 12  , 35     , 35       , 30     , 12    , 12    , 35          , 45      })
 	EndIf
+
+// LEGENDA - CODIGO - DESCRIÇÃO- MARCA - REF. FORNECEDOR - UM - PREÇO - CUSTO - GR TRIB- GRUPO 
 
 	_oListBox := TWBrowse():New(040+25,001,600,120,,_aTitulos[1],_aTitulos[2],_oDlg,,,,,,,,,,,,.F.,,.T.,,.F.)
 	_oListBox:bChange    := {|| _oChgProd("T", FWxFilial("SB2")) }
@@ -713,23 +715,26 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChv
 		EndIf
 
 		If lShwPrcCompra
-		/*	AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Tipo"        , "UM"             , "Preço"                                       , "2a.UM"        , "Preço 2a.UM", */
-			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO, (cAlias)->UNIDADE, Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), (cAlias)->UNID2, cPrc2UM      , ;
-		/*	"Custo"                                       , "Últ.Compra"                                   , "Ref.Fornecedor", "Marca"        , "Modelo"        , "Gr Trib"       , "Grupo"         } ) */;
-			Transform((cAlias)->VCUSTOSTD,"@E 999,999.99"), Transform((cAlias)->VULTCOMPRA,"@E 999,999.99"), (cAlias)->REFFOR, (cAlias)->MARCA, (cAlias)->MODELO, (cAlias)->GRTRIB, (cAlias)->GRUPO } )
+		/*	AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Marca"        , "Ref.Fornecedor", "UM"             , */
+			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->MARCA, (cAlias)->REFFOR, (cAlias)->UNIDADE, ;
+		/*	"Preço"                                       , "Custo"                                       , "Gr Trib"       , "Grupo"        , */;
+			Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), Transform((cAlias)->VCUSTOSTD,"@E 999,999.99"), (cAlias)->GRTRIB, (cAlias)->GRUPO, ;
+		/*	"Tipo"        , "2a.UM"        , "Preço 2a.UM", "Últ.Compra"                                   , "Modelo"         } ) */;
+			(cAlias)->TIPO, (cAlias)->UNID2, cPrc2UM      , Transform((cAlias)->VULTCOMPRA,"@E 999,999.99"), (cAlias)->MODELO } )
 		ElseIf lShwCusto
-		/*	AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Tipo"        , "UM"             , "Preço"                                       , "2a.UM"        , "Preço 2a.UM", */
-			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO, (cAlias)->UNIDADE, Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), (cAlias)->UNID2, cPrc2UM      , ;
-		/*	"Custo"                                       , "Ref.Fornecedor", "Marca"        , "Modelo"        , "Gr Trib"       , "Grupo"         } ) */;
-			Transform((cAlias)->VCUSTOSTD,"@E 999,999.99"), (cAlias)->REFFOR, (cAlias)->MARCA, (cAlias)->MODELO, (cAlias)->GRTRIB, (cAlias)->GRUPO } )
+		/*	AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Marca"        , "Ref.Fornecedor", "UM"             , */
+			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->MARCA, (cAlias)->REFFOR, (cAlias)->UNIDADE, ;
+		/*	"Preço"                                       , "Custo"                                       , "Gr Trib"       , "Grupo"        , */;
+			Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), Transform((cAlias)->VCUSTOSTD,"@E 999,999.99"), (cAlias)->GRTRIB, (cAlias)->GRUPO, ;
+		/*	"Tipo"        , "2a.UM"        , "Preço 2a.UM", "Modelo"         } ) */;
+			(cAlias)->TIPO, (cAlias)->UNID2, cPrc2UM      , (cAlias)->MODELO } )
 		Else
-			// // AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Tipo"        , "UM"             , "Preço"                           , "2a.UM"        , "Preço 2a.UM", "Ref.Fornecedor", "Marca"        , "Modelo"           , "Gr Trib"       , "Grupo"         } )
-			// AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO, (cAlias)->UNIDADE, Transform((cAlias)->PRECOV,"@E 999,999.99"), (cAlias)->UNID2, cPrc2UM      , (cAlias)->REFFOR, (cAlias)->MARCA, (cAlias)->MODELO, (cAlias)->GRTRIB, (cAlias)->GRUPO } )
-
-		/*	AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Tipo"        , "UM"             , "Preço"                                       , "2a.UM"        , "Preço 2a.UM", */
-			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->TIPO, (cAlias)->UNIDADE, Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), (cAlias)->UNID2, cPrc2UM      , ;
-		/*	"Ref.Fornecedor", "Marca"        , "Modelo"           , "Gr Trib"       , "Grupo"         } ) */;
-			(cAlias)->REFFOR, (cAlias)->MARCA, (cAlias)->MODELO, (cAlias)->GRTRIB, (cAlias)->GRUPO } )
+		/*	AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Marca"        , "Ref.Fornecedor", "UM"             , */
+			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->MARCA, (cAlias)->REFFOR, (cAlias)->UNIDADE, ;
+		/*	"Preço"                                       , "Gr Trib"       , "Grupo"        , */;
+			Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), (cAlias)->GRTRIB, (cAlias)->GRUPO, ;
+		/*	"Tipo"        , "2a.UM"        , "Preço 2a.UM", "Modelo"         } ) */;
+			(cAlias)->TIPO, (cAlias)->UNID2, cPrc2UM      , (cAlias)->MODELO } )
 		EndIf
 
 		(cAlias)->( dbSkip() )

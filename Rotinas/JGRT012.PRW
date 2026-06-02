@@ -1722,8 +1722,7 @@ Return
 
 /*/{Protheus.doc} JGRT12E1
 
-    Responsável por processar os pedidos com status JGTrPVNPE (Nota Fiscal de Saída Autorizada, Pendente de Entrada na filial solicitante/destino),
-    atualizando o status da NFe caso tenha mudado e alterando o pedido para JGTrPVNPE (Nota Fiscal de Saída Autorizada, Pendente de Entrada na filial solicitante).
+    Responsável por efetuar a entrada da nota fiscal de transferência na filial de destino.
 
 @type function
 @version 1.0 
@@ -1755,7 +1754,7 @@ User Function JGRT12E1(cSemaforo)
         U_JGRT11_F()
 
         /*ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-        ³                 		Gera Pedido e Nota fiscal de saida					  ³
+        ³              Registra a entrada da nota fiscal de transferência              ³
         ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ*/
 
         cChaveDoc := SC5->(C5_FILIAL+C5_NOTA+C5_SERIE+C5_CLIENTE+C5_LOJACLI+Space(TamSx3("F2_FORMUL")[1])+C5_TIPO)
@@ -1766,7 +1765,11 @@ User Function JGRT12E1(cSemaforo)
             If SF2->(F2_FILIAL+F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA+F2_FORMUL+F2_TIPO) == cChaveDoc //Valida se o documento de saída encontrado é referente ao pedido
                 If SF2->F2_FIMP == "S" //Valida se a NFe já está autorizada
                     If U_JGRT13A( , SF2->F2_FILIAL, SF2->F2_DOC, SF2->F2_SERIE )
-                        U_JGRT11_E(SC5->(Recno()), JGTrPVOK, JGTrOrOK)//Grava Status no Pedido e do Orçamento
+                        If SC5->C5_XLOCFIN == SC5->C5_XLOCDES
+                            U_JGRT11_E(SC5->(Recno()), JGTrPVOK, JGTrOrOK) //Grava Status no Pedido e do Orçamento
+                        Else
+                            U_JGRT11_E(SC5->(Recno()), JGTrPVEPL) //Grava Status no Pedido
+                        EndIf
                     EndIf
                 EndIf
             EndIf

@@ -19,11 +19,11 @@ User Function MS520VLD
 	Local lRetorno   := .T.
 	Local cFilCli    := ""
 
-	//Validação se o usuário está retroagindo data para cancelar NF autorizada
+	//Validação se o usuário está retroagindo data para cancelar NF autorizada ou se o 
 	lRetorno := fVLDDATA()
 
 	//Validação para notas de transferência entre filiais
-	If U_xfNfDest(SF2->F2_FILIAL, SF2->F2_DOC, SF2->F2_SERIE, DToS(SF2->F2_EMISSAO))
+	If lRetorno .And. U_xfNfDest(SF2->F2_FILIAL, SF2->F2_DOC, SF2->F2_SERIE, DToS(SF2->F2_EMISSAO))
 
 		cFilCli := U_xfFilCli(SF2->F2_CLIENTE, SF2->F2_LOJA)
 

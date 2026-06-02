@@ -50,7 +50,7 @@ User Function MA410MNU()
     aAdd(aRotina,{"Pesquisa Dinâmica"                   , "U_PesqDina('SC5')"   , 0 , 1 , 0 , Nil} )
     //13/03/2026 - Fernando Carvalho - relatorio de vendas nao entregues
     cKey := SetKey(VK_F11, {|| U_Matr680j()})
-    aAdd(aRotina,{"* Rel. Vendas Não Entregues"         , "U_Matr680j('SC5')"   , 0 , 1 , 0 , Nil} )
+    aAdd(aRotina,{"REL. Vendas Não Entregues"         , "U_Matr680j('SC5')"   , 0 , 1 , 0 , Nil} )
     //13/03/2026 - Fernando Carvalho - Altera condição de pagamento do pedido de venda -
     aAdd(aRotina,{"#Alt. Cond Pagto"                    , "U_JGALTCOND()"       , 0 , 1 , 0 , Nil})
     //07/05/2026 - Jesus Ramos - Impressão de DANFE

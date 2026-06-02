@@ -227,64 +227,6 @@ User Function JGRT13A(oSay, cFil, cNota, cSerie)
 
 Return(lRet)
 
-/*/{Protheus.doc} xfNfDest
-FunÁ„o para verificar se a nota de transferÍncia j· foi incluÌda na filial de destino, 
-verificando se a nota existe na SF2 da loja de origem e se a mesma j· foi incluÌda na SF1 da filial de destino.
-
-@type function
-@version  
-@author Samsung
-@since 13/03/2026
-@param _cFil, variant, param_description
-@param _cNota, variant, param_description
-@param __cSerieNf, variant, param_description
-@param _dEmis, variant, param_description
-@return variant, return_description
-/*/
-User Function xfNfDest(_cFil, _cNota, __cSerieNf, _dEmis)
-
-	Local cAliasAnt  := Alias()
-	Local aArea      := FWGetArea()
-	Local aAreaSF2   := SF2->(FWGetArea())
-	Local aAreaSF1   := SF1->(FWGetArea())
-	Local lRetorno   := .F.
-	Local cFilCli    := ""
-	Local aForFil	 := {}
-	Local cChaveNota := ""
-
-	DbSelectArea("SF2")
-	SF2->(DbSetOrder(1))	//F2_FILIAL+F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA+F2_FORMUL+F2_TIPO
-	If SF2->(MsSeek(_cFil + _cNota + __cSerieNf)) .And. SF2->(F2_FILIAL+F2_DOC+F2_SERIE) == _cFil + _cNota + __cSerieNf .And. DToS(SF2->F2_EMISSAO) == _dEmis
-
-		//ValidaÁ„o para notas de transferÍncia entre filiais
-		cFilCli := U_xfFilCli(SF2->F2_CLIENTE, SF2->F2_LOJA)
-		aForFil := U_xfForFil(_cFil)
-
-		If !Empty(cFilCli) .And. Len(aForFil) >= 2
-
-			cChaveNota := cFilCli+SF2->(F2_DOC+F2_SERIE)+aForFil[1]+aForFil[2]
-			DbSelectArea("SF1")
-			SF1->(DbSetOrder(1))
-			If SF1->(DbSeek(cChaveNota)) .And. SF1->(F1_FILIAL+F1_DOC+F1_SERIE+F1_FORNECE+F1_LOJA) == cChaveNota
-				lRetorno := .T.
-			EndIf
-
-		EndIf
-	EndIf
-
-	FWRestArea(aAreaSF1)
-	FWRestArea(aAreaSF2)
-	FWRestArea(aArea)
-	DbSelectArea(cAliasAnt)
-
-	FwFreeArray(aForFil)
-	FwFreeArray(aAreaSF1)
-	FwFreeArray(aAreaSF2)
-	FwFreeArray(aArea)
-
-Return(lRetorno)
-
-
 /*
 ‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹‹
 ±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±

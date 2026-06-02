@@ -29,6 +29,8 @@ User Function JGRT011A()
 	Local cARMO 		:= Space(TamSx3("C6_LOCAL")[1])
 	Local oARMD
 	Local cARMD 		:= Space(TamSx3("C6_LOCAL")[1])
+	Local oARMF
+	Local cARMF			:= Space(TamSx3("C6_LOCAL")[1])
 	Local oCliente
 	Local oFornec
 	Local oSolicit
@@ -63,20 +65,18 @@ User Function JGRT011A()
 	Private _oVlTotal,_oQtItens
 	Private _nVlTotal	:= 0
 	Private _nQtItens	:= 0
-	Private _cFilO 		:= cFilAnt//Space(04)
+	Private _cFilO 		:= cFilAnt //Space(04)
 	Private _cFilD		:= Space(TamSX3("C5_FILIAL")[1])
 	Private _cCliente 	:= Space(TamSx3("C5_CLIENTE")[1] + TamSx3("C5_LOJACLI")[1] + 1)
 	Private _cFornec	:= Space(TamSx3("F1_FORNECE")[1] + TamSx3("F1_LOJA")[1] + 1)
 	Private _oMSGetTrf
-	Private oARMF
-	Private cARMF		:= Space(TamSx3("C6_LOCAL")[1])
 	Static oDlg
 
 	// Definir os valores iniciais de filial e armazém
 	// _cFilO := "0101"
-	cARMO  := "01"
-	cARMD  := "01"
-	cARMF  := "01"
+	cARMO  := GetNewPar("JG_LOCORIT","") // Local de origem das transferências.
+	cARMD  := GetNewPar("JG_LOCDEST","") // Local de destino temporário das transferências.
+	cARMF  := GetNewPar("JG_LOCFINT","") // Local de final das transferências, após liberação do estoque.
 
 	ValidFil(@_cFilO, _cFilD, @cDFilO, @cARMO, "O")
 	fCliFor("F", _cFilO, @_cFornec)
@@ -95,13 +95,11 @@ User Function JGRT011A()
 	nPosGet := 004
 
 	@ C(nPosSay), C(004) SAY oSay1 PROMPT "Filial Origem" SIZE C(049), C(007) OF oPanel FONT oFont1 COLORS 0, 14342874 PIXEL
-	// @ C(nPosGet), C(047) MSGET oFilO VAR _cFilO SIZE C(021), C(007) OF oPanel COLORS 0, 16777215 FONT oFont1 VALID(ValidFil(@_cFilO, _cFilD, @cDFilO, @cARMO, "O"), fCliFor("F", _cFilO, @_cFornec), Iif(!Empty(_cFilO), oFilD:SetFocus(), oFilO:SetFocus())) F3 "SM0" PIXEL When _lDFilO
 	@ C(nPosGet), C(047) MSGET oFilO VAR _cFilO SIZE C(021), C(007) OF oPanel COLORS 0, 16777215 FONT oFont1 VALID( IIf(ValidFil(@_cFilO, _cFilD, @cDFilO, @cARMO, "O"), fCliFor("F", _cFilO, @_cFornec), oFilO:SetFocus()) ) F3 "SM0" PIXEL When _lDFilO
 	@ C(nPosGet), C(082) MSGET oDFilO VAR cDFilO SIZE C(106), C(007) OF oPanel COLORS 0, 16777215  PIXEL When .f.
 
 	@ C(nPosSay), C(190) SAY oSay3 PROMPT "Armaz.Origem" SIZE C(067), C(007) OF oPanel FONT oFont1 COLORS 0, 16777215 PIXEL
 	@ C(nPosGet), C(230) MSGET oARMO VAR cARMO SIZE C(010), C(007) OF oPanel COLORS 0, 16777215 PIXEL When _lARMO
-	// oBtn3 := TBtnBmp2():New( C(nPosGet),C(480),26,26,"AVGARMAZEM.PNG",,,,{|| Iif(_lDFilO,fListArmz("O",_cFilO,_cFilD,@cARMO),MsgStop("Não é possível alterar o Armazém!")),Iif(_lDFilO,(cARMD:=Space(02),cARMF:=cARMD),nil) } ,oPanel,"Armazem de Origem",,,)
 	oBtn3 := TBtnBmp2():New( C(nPosGet),C(480),26,26,"AVGARMAZEM.PNG",,,,,oPanel,"Armazém de Origem",,,)
 
 	@ C(nPosSay), C(255) SAY oSay9 PROMPT "Fornec./Loja" SIZE C(067), C(007) OF oPanel FONT oFont1 COLORS 0, 16777215 PIXEL
@@ -111,13 +109,11 @@ User Function JGRT011A()
 	@ C(nPosGet+5),   C(395) GET oObser VAR cObser MEMO SIZE C(101), C(036) OF oPanel FONT oFont1 COLORS 0, 16777215 PIXEL
 
 	@ C(nPosSay+=10) , C(004) SAY oSay2 PROMPT "Filial Destino" SIZE C(049), C(007) OF oPanel FONT oFont1 COLORS 0, 16777215 PIXEL
-	// @ C(nPosGet+=10) , C(047) MSGET oFilD VAR _cFilD SIZE C(021), C(007) OF oPanel COLORS 0, 16777215 FONT oFont1 VALID(ValidFil(@_cFilD, _cFilO, @cDFilD, @cARMD, "D"), fCliFor("C", _cFilD, @_cCliente)) F3 "SM0" PIXEL When _lDFilD
-	@ C(nPosGet+=10) , C(047) MSGET oFilD VAR _cFilD SIZE C(021), C(007) OF oPanel COLORS 0, 16777215 FONT oFont1 VALID( IIf(ValidFil(@_cFilD, _cFilO, @cDFilD, @cARMD, "D"), fCliFor("C", _cFilD, @_cCliente), oFilD:SetFocus()) ) F3 "SM0" PIXEL When _lDFilD
+	@ C(nPosGet+=10) , C(047) MSGET oFilD VAR _cFilD SIZE C(021), C(007) OF oPanel COLORS 0, 16777215 FONT oFont1 VALID( IIf(ValidFil(@_cFilD, _cFilO, @cDFilD, @cARMD, "D", @cARMF), fCliFor("C", _cFilD, @_cCliente), oFilD:SetFocus()) ) F3 "SM0" PIXEL When _lDFilD
 	@ C(nPosGet)		, C(082) MSGET oDFilD VAR cDFilD SIZE C(106), C(007) OF oPanel COLORS 0, 16777215 PIXEL When .f.
 
 	@ C(nPosSay), C(190) SAY oSay4 PROMPT "Armaz.Destino" SIZE C(067), C(007) OF oPanel FONT oFont1 COLORS 0, 16777215 PIXEL
 	@ C(nPosGet), C(230) MSGET oARMD VAR cARMD SIZE C(010), C(007) OF oPanel COLORS 0, 16777215 PIXEL When _lARMD
-	// oBtn4 := TBtnBmp2():New( C(nPosGet+10),C(480),26,26,"AVGBOX1_MDI.PNG",,,,{|| Iif(_lDFilD,fListArmz("D",_cFilO,_cFilD,@cARMD),MsgStop("Não é possível alterar o Armazém!")),Iif(_lDFilD,SetArmazF(cARMO,cARMD),nil) } ,oPanel,"Armazem de Destino",,,)
 	oBtn4 := TBtnBmp2():New( C(nPosGet+10),C(480),26,26,"AVGBOX1_MDI.PNG",,,,,oPanel,"Armazém de Destino",,,)
 
 	@ C(nPosSay), C(255) SAY oSay8 PROMPT "Cliente/Loja" SIZE C(067), C(007) OF oPanel FONT oFont1 COLORS 0, 16777215 PIXEL
@@ -155,7 +151,7 @@ User Function JGRT011A()
 	@ C(005), C(380) SAY "Quant.Itens:" SIZE C(067), C(009) OF oPnlP3 FONT oFont1 COLORS 0, 16777215 PIXEL
 	@ C(005), C(420) SAY _oQtItens /* _oSay11 */ PROMPT Transform(_nQtItens, "@E 999,999.99") SIZE C(040), C(009) OF oPnlP3 COLOR CLR_HRED PIXEL  FONT oFont1
 
-	bOk 	:= {|| lSai := fGera(_cCliente, cARMO, cARMD, cObser, cSolicit, _oMSGetTrf:aHeader, _oMSGetTrf:aCols), If(lSai, oDlg:End(), .T.)}
+	bOk 	:= {|| lSai := fGera(_cCliente, cARMO, cARMD, cARMF, cObser, cSolicit, _oMSGetTrf:aHeader, _oMSGetTrf:aCols), If(lSai, oDlg:End(), .T.)}
 	bSair	:= {|| oDlg:End() }
 
 	//AADD(aButtons, {"", {|| FWMsgRun(, {|oSay| fImpCSV() }, "Processando - Imp.Arquivo CSV", "Aguarde, processando a rotina" ) }, "(F2) Imp.Aquivo CSV"})
@@ -676,7 +672,7 @@ Static Function fProduto(cCod,cDescProd)
 @since 23/10/2015
 /*/
 //------------------------------------------------------------------
-Static Function ValidFil(cFilPos, cFilValid, cDescFil, _cARMZ, _cTp)
+Static Function ValidFil(cFilPos, cFilValid, cDescFil, _cARMZ, _cTp, _cARMF)
 	Local lRet := .T.
 
 	// _cARMZ := Space(02)
@@ -702,18 +698,25 @@ Static Function ValidFil(cFilPos, cFilValid, cDescFil, _cARMZ, _cTp)
 		Return(.f.)
 	EndIf
 
-	If _cTp == "O" .And. !(cFilPos $ "0101;0103;0104;")
-		FWAlertWarning(OemToAnsi("A filial de origem deve ser 0101, 0103 ou 0104!"), OemToAnsi("Atenção"))
-		cFilPos := Space(4)
-		cDescFil := Space(60)
-		Return(.f.)
-	EndIf
+	If _cTp == "O"
+		If !(cFilPos $ "0101;0103;0104;")
+			FWAlertWarning(OemToAnsi("A filial de origem deve ser 0101, 0103 ou 0104!"), OemToAnsi("Atenção"))
+			cFilPos := Space(4)
+			cDescFil := Space(60)
+			Return(.f.)
+		EndIf
+		 _cARMO := GetNewPar("JG_LOCORIT","",cFilPos)
 
-	If _cTp == "D" .And. !(cFilPos $ "0101;0103;0104;")
-		FWAlertWarning(OemToAnsi("A filial de destino deve ser 0101, 0103 ou 0104!"), OemToAnsi("Atenção"))
-		cFilPos := Space(4)
-		cDescFil := Space(60)
-		Return(.f.)
+	ElseIf _cTp == "D"
+
+		If !(cFilPos $ "0101;0103;0104;")
+			FWAlertWarning(OemToAnsi("A filial de destino deve ser 0101, 0103 ou 0104!"), OemToAnsi("Atenção"))
+			cFilPos := Space(4)
+			cDescFil := Space(60)
+			Return(.f.)
+		EndIf
+		_cARMZ := GetNewPar("JG_LOCDEST","",cFilPos)
+		_cARMF := GetNewPar("JG_LOCFINT","",cFilPos)
 	EndIf
 
 	cDescFil := FWFilialName(cEmpAnt,cFilPos,1)
@@ -824,7 +827,7 @@ Static Function fImpCSV( oSay, nQuant, cProduto, cDescProd, cLoteCtl, cARMO, cAR
 Return
 
 
-Static Function fGera(_cCliente, cARMO, cARMD, cObser, cSolicit, aHeader, aCols)
+Static Function fGera(_cCliente, cARMO, cARMD, cARMF, cObser, cSolicit, aHeader, aCols)
 
 	Local lGera			:= .T.
 	Local aColsAx		:= {}

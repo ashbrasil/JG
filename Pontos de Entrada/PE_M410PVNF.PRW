@@ -74,7 +74,7 @@ description
     Verifica a quantidade de itens existentes no pedido.
 @type function
 @version  
-@author Samsung
+@author Jesus Ramos
 @since 09/03/2026
 @param cFilial, character, param_description
 @param cNumPed, character, param_description
@@ -101,7 +101,7 @@ description
     Verifica a quantidade de itens do pedido que não possuem ordem de separação gerada.
 @type function
 @version  
-@author Samsung
+@author Jesus Ramos
 @since 09/03/2026
 @param cFilial, character, param_description
 @param cNumPed, character, param_description
@@ -146,7 +146,7 @@ description
     Verifica a quantidade de itens do pedido que possuem ordem de separação gerada mas não finalizada.
 @type function
 @version  
-@author Samsung
+@author Jesus Ramos
 @since 09/03/2026
 @param cFilial, character, param_description
 @param cNumPed, character, param_description

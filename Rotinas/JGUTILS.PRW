@@ -280,7 +280,7 @@ User Function xfFilCli(_cCodCli, _cLojCli)
 
 Return cRetFilCli
 
-/*/{Protheus.doc} fDesStaTrf
+/*/{Protheus.doc} fDsStTrf
 description
 	Essa função tem como finalidade retornar a descrição do status da transferência imediata no SIGALOJA - SL1/SLQ - Campo LQ_XMOVTRF/L1_XMOVTRF.
 @type function
@@ -292,7 +292,7 @@ description
 @param lDescDet, logical, Indica se a descrição retornada deve ser detalhada (com informações adicionais sobre o status) ou resumida (apenas o status em si).
 @return string, Descrição do status da transferência, conforme o status informado e o nível de detalhe solicitado.
 /*/
-User Function fDsStTrf(cOriStatus, cStatusTrf, lDescDet)
+User Function fDsStTrf( cOriStatus, cStatusTrf, lDescDet )
 	Local cResStaTrf := "Status Indefinido"  // Descrição resumida/reduzida do status da transferência
 	Local cDetStaTrf := "Status Indefinido." // Descrição detalhada do status da transferência
 
@@ -304,10 +304,10 @@ User Function fDsStTrf(cOriStatus, cStatusTrf, lDescDet)
                 cResStaTrf := "Não se Aplica"
                 cDetStaTrf := "Operação sem exigência de transferência imediata. A filial tem estoque próprio."
             Case cStatusTrf == JGTrOrEAb
-                cResStaTrf := "Orç. Em Aberto"
+                cResStaTrf := "Orçamento Em Aberto"
                 cDetStaTrf := "Orçamento em aberto, em manutenção pelo vendedor. A transferência ainda não foi iniciada."
             Case cStatusTrf == JGTrOrIni
-                cResStaTrf := "Transf. Iniciada"
+                cResStaTrf := "Transferência Iniciada"
                 cDetStaTrf := "O processo de transferência já foi iniciado."
             Case cStatusTrf == JGTrOrPPS
                 cResStaTrf := "PV Transf. Pend. Separação"
@@ -322,11 +322,20 @@ User Function fDsStTrf(cOriStatus, cStatusTrf, lDescDet)
                 cResStaTrf := "NF Pendente Entrada Destino"
                 cDetStaTrf := "A NF de saída foi autorizada pela SEFAZ, mas ainda não foi lançada na filial solicitante."
             Case cStatusTrf == JGTrOrOK
-                cResStaTrf := "Transf. Concluída"
+                cResStaTrf := "Transferência Concluída"
                 cDetStaTrf := "O processo de transferência foi concluído."
             Case cStatusTrf == JGTrOrExD
                 cResStaTrf := "NF de Entrada excluída"
                 cDetStaTrf := "A NF de entrada foi excluída na filial solicitante. O orçamento não poderá ser finalizado."
+            Case cStatusTrf == JGTrOrExO
+                cResStaTrf := "NF de Saída excluída"
+                cDetStaTrf := "A NF de saída foi excluída na filial de origem."
+            Case cStatusTrf == JGTrOrOS
+                cResStaTrf := "PV não cancelado - O.S."
+                cDetStaTrf := "O PV não foi cancelado - Existem Ordens de Separação vinculadas."
+            Case cStatusTrf == JGTrOrCan
+                cResStaTrf := "Transferência Cancelada"
+                cDetStaTrf := 'O PV foi residuado e a transferência cancelada. O orçamento voltará para o status de <b>"Orçamento em Aberto"</b> e poderá ser editado normalmente.'
         EndCase
     ElseIf cOriStatus == "P" // Status de Pedido de Venda (SC5)
         Do Case
@@ -345,13 +354,201 @@ User Function fDsStTrf(cOriStatus, cStatusTrf, lDescDet)
             Case cStatusTrf == JGTrPVNPE
                 cResStaTrf := "NF Pendente Entrada Destino"
                 cDetStaTrf := "A NF de saída foi autorizada pela SEFAZ, mas ainda não foi lançada na filial solicitante."
+            Case cStatusTrf == JGTrPVEPL
+                cResStaTrf := "Entrada OK - Pendente Liberação do Estoque"
+                cDetStaTrf := "A entrada foi efetuada na filial de destino, mas o estoque ainda não foi liberado para venda."
             Case cStatusTrf == JGTrPVOK
                 cResStaTrf := "Transf. Concluída"
                 cDetStaTrf := "O processo de transferência foi concluído."
             Case cStatusTrf == JGTrPVExD
                 cResStaTrf := "NF de Entrada excluída"
                 cDetStaTrf := "A NF de entrada foi excluída na filial solicitante."
+            Case cStatusTrf == JGTrPVExO
+                cResStaTrf := "NF de Saída excluída"
+                cDetStaTrf := "A NF de saída foi excluída na filial de origem."
+            Case cStatusTrf == JGTrPVOS
+                cResStaTrf := "PV não cancelado - O.S."
+                cDetStaTrf := "O PV não foi cancelado - Existem Ordens de Separação vinculadas."
+            Case cStatusTrf == JGTrPVCan
+                cResStaTrf := "Transferência Cancelada"
+                cDetStaTrf := 'O PV foi residuado e a transferência cancelada. O orçamento voltará para o status de <b>"Orçamento em Aberto"</b> e poderá ser editado normalmente.'
         EndCase
     EndIf
 
-Return IIf(lDescDet,cDetStaTrf,cResStaTrf)
+Return IIf( lDescDet, cDetStaTrf, cResStaTrf )
+
+
+/*/{Protheus.doc} fStTrfCB
+
+	Essa função tem como finalidade retornar a lista de opções para o combobox dos campos L1_XMOVTRF e C5_XMOVTRF.
+
+@type function
+@version  
+@author Jesus Ramos
+@since 06/03/2026
+@param cOrigem, string, Indica se o status é de um orçamento (SL1) ou de um pedido de venda (SC5).
+/*/
+User Function fStTrfCB(cOrigem)
+	Local cCBox := "" // Lista de opções para a propriedade X3_CBOX dos campos de status da transferência (L1_XMOVTRF, C5_XMOVTRF).
+
+    Default cOrigem := "P"
+
+    If cOrigem == "O" // Status de Orçamento (SL1)
+        cCBox +=     JGTrOrNSA+"=Não se Aplica"
+        cCBox += ";"+JGTrOrEAb+"=Orçamento Em Aberto"
+        cCBox += ";"+JGTrOrIni+"=Transferência Iniciada"
+        cCBox += ";"+JGTrOrPPS+"=PV Transf. Pend. Separação"
+        cCBox += ";"+JGTrOrPPF+"=PV Transf. Pend. Faturamento"
+        cCBox += ";"+JGTrOrNPA+"=NF Saída Pendente Autorização"
+        cCBox += ";"+JGTrOrNPE+"=NF Pendente Entrada Destino"
+        cCBox += ";"+JGTrOrOK +"=Transferência Concluída"
+        cCBox += ";"+JGTrOrExD+"=NF de Entrada excluída"
+        cCBox += ";"+JGTrOrExO+"=NF de Saída excluída"
+        cCBox += ";"+JGTrOrOS +"=PV não cancelado - OS"
+        cCBox += ";"+JGTrOrCan+"=Transferência Cancelada"
+    Else // Status de Pedido de Venda (SC5)
+        cCBox +=     JGTrPVNor+"=PV Normal"
+        cCBox += ";"+JGTrPVPSp+"=PV Transf. Pend. Separação"
+        cCBox += ";"+JGTrPVPFt+"=PV Transf. Pend. Faturamento"
+        cCBox += ";"+JGTrPVNPA+"=NF Saída Pendente Autorização"
+        cCBox += ";"+JGTrPVNPE+"=NF Pendente Entrada Destino"
+        cCBox += ";"+JGTrPVEPL+"=Entrada OK - Pendente Liberação do Estoque"
+        cCBox += ";"+JGTrPVOK +"=Transferência Concluída"
+        cCBox += ";"+JGTrPVExD+"=NF de Entrada excluída"
+        cCBox += ";"+JGTrPVExO+"=NF de Saída excluída"
+        cCBox += ";"+JGTrPVOS +"=PV não cancelado - OS"
+        cCBox += ";"+JGTrPVCan+"=Transferência Cancelada"
+    EndIf
+
+Return cCBox
+
+/*/{Protheus.doc} xfNfDest
+Função para verificar se a nota de transferência já foi incluída na filial de destino, 
+verificando se a nota existe na SF2 da loja de origem e se a mesma já foi incluída na SF1 da filial de destino.
+
+@type function
+@version  
+@author Jesus Ramos
+@since 13/03/2026
+@param _cFil, variant, param_description
+@param _cNota, variant, param_description
+@param __cSerieNf, variant, param_description
+@param _dEmis, variant, param_description
+@return variant, return_description
+/*/
+User Function xfNfDest(_cFil, _cNota, __cSerieNf, _dEmis)
+
+	Local cAliasAnt  := Alias()
+	Local aArea      := FWGetArea()
+	Local aAreaSF2   := SF2->(FWGetArea())
+	Local aAreaSF1   := SF1->(FWGetArea())
+	Local lRetorno   := .F.
+	Local cFilCli    := ""
+	Local aForFil	 := {}
+	Local cChaveNota := ""
+
+	DbSelectArea("SF2")
+	SF2->(DbSetOrder(1))	//F2_FILIAL+F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA+F2_FORMUL+F2_TIPO
+	If SF2->(MsSeek(_cFil + _cNota + __cSerieNf)) .And. SF2->(F2_FILIAL+F2_DOC+F2_SERIE) == _cFil + _cNota + __cSerieNf .And. DToS(SF2->F2_EMISSAO) == _dEmis
+
+		//Validação para notas de transferência entre filiais
+		cFilCli := U_xfFilCli(SF2->F2_CLIENTE, SF2->F2_LOJA)
+		aForFil := U_xfForFil(_cFil)
+
+		If !Empty(cFilCli) .And. Len(aForFil) >= 2
+
+			cChaveNota := cFilCli+SF2->(F2_DOC+F2_SERIE)+aForFil[1]+aForFil[2]
+			DbSelectArea("SF1")
+			SF1->(DbSetOrder(1))
+			If SF1->(DbSeek(cChaveNota)) .And. SF1->(F1_FILIAL+F1_DOC+F1_SERIE+F1_FORNECE+F1_LOJA) == cChaveNota
+				lRetorno := .T.
+			EndIf
+
+		EndIf
+	EndIf
+
+	FWRestArea(aAreaSF1)
+	FWRestArea(aAreaSF2)
+	FWRestArea(aArea)
+	DbSelectArea(cAliasAnt)
+
+	FwFreeArray(aForFil)
+	FwFreeArray(aAreaSF1)
+	FwFreeArray(aAreaSF2)
+	FwFreeArray(aArea)
+
+Return(lRetorno)
+
+
+/*/{Protheus.doc} xfNfOrig
+
+    Função para pesquisar a existência da nota de entrada na filial de origem.
+
+@type function
+@version  
+@author Jesus Ramos
+@since 13/03/2026
+@param _cFil, variant, param_description
+@param _cNota, variant, param_description
+@param __cSerieNf, variant, param_description
+@param _dEmis, variant, param_description
+@return variant, return_description
+/*/
+User Function xfNfOrig(_cFil, _cNota, __cSerieNf, _cFornecedor, _cLojaFor, _dEmis)
+
+	Local cAliasAnt  := Alias()
+	Local aArea      := FWGetArea()
+	Local aAreaSF1   := SF1->(FWGetArea())
+	Local aAreaSF2   := SF2->(FWGetArea())
+	Local aAreaSC5   := SC5->(FWGetArea())
+	Local aRetorno   := {"", "", 0, 0, ""} // 1 - Filial do Fornecedor, 2 - Cliente/Loja da Filial do Fornecedor, 3 - Recno da SC5, 4 - Recno da SF2, 5 - Armazém final da transferência
+	Local cFilFor    := ""
+	Local aCliFil	 := {}
+	// Local cChaveNota := ""
+
+	DbSelectArea("SF1")
+	SF1->(DbSetOrder(1)) //F1_FILIAL+F1_DOC+F1_SERIE+F1_FORNECE+F1_LOJA
+	If SF1->(MsSeek(_cFil + _cNota + __cSerieNf + _cFornecedor + _cLojaFor)) .And.;
+        SF1->(F1_FILIAL+F1_DOC+F1_SERIE+F1_FORNECE+F1_LOJA) == _cFil + _cNota + __cSerieNf + _cFornecedor + _cLojaFor .And. SF1->F1_EMISSAO == _dEmis
+
+		//Validação para notas de transferência entre filiais
+		cFilFor := U_xfFilFor(SF1->F1_FORNECE, SF1->F1_LOJA)
+		aCliFil := U_xfCliFil(SF1->F1_FILIAL)
+
+        aRetorno[1] := cFilFor
+        aRetorno[2] := AClone(aCliFil)
+
+		If !Empty(cFilFor) .And. Len(aCliFil) >= 2
+
+            DbSelectArea("SC5")
+            SC5->(DbOrderNickName("XNFSERCLLJ")) //C5_FILIAL+C5_NOTA+C5_SERIE+C5_CLIENTE+C5_LOJACLI
+            If SC5->(DbSeek(cFilFor+SF1->(F1_DOC+F1_SERIE)+aCliFil[1]+aCliFil[2])) ;
+                    .And. SC5->(C5_FILIAL+C5_NOTA+C5_SERIE+C5_CLIENTE+C5_LOJACLI) == cFilFor+SF1->(F1_DOC+F1_SERIE)+aCliFil[1]+aCliFil[2]
+                aRetorno[3] := SC5->(Recno())
+                aRetorno[5] := SC5->C5_XLOCFIN
+
+                DbSelectArea("SF2")
+                SF2->(DbSetOrder(1)) //F2_FILIAL+F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA+F2_FORMUL+F2_TIPO
+                If SF2->(DbSeek(SC5->(C5_FILIAL+C5_NOTA+C5_SERIE+C5_CLIENTE+C5_LOJACLI))) ;
+                        .And. SF2->(F2_FILIAL+F2_DOC+F2_SERIE+F2_CLIENTE+F2_LOJA) == SC5->(C5_FILIAL+C5_NOTA+C5_SERIE+C5_CLIENTE+C5_LOJACLI)
+                    aRetorno[4] := SF2->(Recno())
+                EndIf
+
+            EndIf
+
+		EndIf
+	EndIf
+
+	FWRestArea(aAreaSC5)
+	FWRestArea(aAreaSF2)
+	FWRestArea(aAreaSF1)
+	FWRestArea(aArea)
+	DbSelectArea(cAliasAnt)
+
+	FwFreeArray(aCliFil)
+	FwFreeArray(aAreaSF1)
+	FwFreeArray(aAreaSF2)
+	FwFreeArray(aAreaSC5)
+	FwFreeArray(aArea)
+
+Return aRetorno
