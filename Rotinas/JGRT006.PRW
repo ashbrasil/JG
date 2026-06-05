@@ -13,7 +13,7 @@
     /*/
 User Function JGRT006(_ItemPos)
 
-Local aArea		  := GetArea()
+Local aArea		  := FWGetArea()
 Local cPosITEM    := ""
 Local nSav		  := N
 Local lPedidoVen  := FwIsInCallStack("MATA410")
@@ -29,6 +29,10 @@ Static cPosITEM   := ""
 Static cProCodigo := ""
 
 Default _ItemPos := ""
+
+If IsBlind() .Or. FwIsInCallStack("U_JGRT012")
+    Return(.T.)
+EndIf
 
 If lPedidoVen
     cCliCodigo := M->C5_CLIENTE
@@ -64,7 +68,7 @@ EndIf
 
 N := nSav
 
-RestArea(aArea)
+FWRestArea(aArea)
 
 Return(.T.)
 

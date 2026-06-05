@@ -26,6 +26,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
     Local cListaFil     := ""
     Local aFilProc      := {}
     Local nA
+    Local cIdProc       := ""
 
 	Local cEmp	        := ""
     Local cListFil      := ""
@@ -37,8 +38,12 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
     // Default _cFiliais   := ""
     // Default xIntervalo  := 30 // Intervalo para o Loop(Em segundos) -> Conteudo do terceiro parametro (Parm3 do appserver.ini)
 
+    // Formata o identificador do processamento atual
+    cIdProc := "JOB#" + cIdSemaforo + "# Thread ["+cValToChar(ThreadID())+"] - "
+
     // Realiza o bloqueio de um identificador Semaforo.
     If !GlbNmLock(cIdSemaforo)
+        U_FLOGJG(cIdProc+"Rotina já está em execução. Aguardando liberação do Semáforo para iniciar o processamento.")
         Return()
     EndIf
 
@@ -48,7 +53,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
         xIntervalo := 30
         lOriSched := .T.
 
-        U_FLOGJG("JOB#" + cIdSemaforo + "# Thread ["+cValToChar(ThreadID())+"] - Parâmetros: "+;
+        U_FLOGJG(cIdProc+"Parâmetros: "+;
                     VarInfo("Array uParam", uParam))
 
     Else
@@ -59,19 +64,20 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
         EndIf
         lOriSched := .F.
 
-        U_FLOGJG("JOB#" + cIdSemaforo + "# Thread ["+cValToChar(ThreadID())+"] - Parâmetros: "+;
-                    "Assinatura da função: uParam: " + uParam + ", _cFiliais: " + _cFiliais + ", xIntervalo: " + IIf(ValType(xIntervalo)=="N", cValToChar(xIntervalo), xIntervalo) )
+        U_FLOGJG(cIdProc+"Parâmetros: "+;
+                    "Assinatura da função: uParam: " + uParam + ", _cFiliais: " + _cFiliais + ;
+                    ", xIntervalo: " + IIf(ValType(xIntervalo)=="N", cValToChar(xIntervalo), xIntervalo) )
 
     EndIf
 
     If Empty(cEmp)
-        U_FLOGJG("Informe o parametro >>parm1=01<< com a empresa de uso!")
+        U_FLOGJG(cIdProc+"Informe o parametro >>parm1=01<< com a empresa de uso!")
         GlbNmUnlock(cIdSemaforo)
         Return()  
     EndIf
 
     If Empty(cListFil)
-        U_FLOGJG("Informe o parametro >>parm2=0101,0102<< da lista das filiais de uso!")
+        U_FLOGJG(cIdProc+"Informe o parametro >>parm2=0101,0102<< da lista das filiais de uso!")
         GlbNmUnlock(cIdSemaforo)
         Return()
     EndIf
@@ -89,7 +95,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
     aFilial := StrTokArr2( Alltrim(cListFil), "," )
 
     If Len(aFilial)==0
-        U_FLOGJG("Informe o parametro >>parm2=0101,0102<< da lista das filiais de uso!")
+        U_FLOGJG(cIdProc+"Informe o parametro >>parm2=0101,0102<< da lista das filiais de uso!")
         GlbNmUnlock(cIdSemaforo)
         Return()
     EndIf
@@ -97,7 +103,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
     cFil := aFilial[1]
     cListaFil := FormatIn(Alltrim(cListFil),",")
 
-    U_FLOGJG("JOB#" + cIdSemaforo + "# Thread ["+cValToChar(ThreadID())+"] - Parâmetros: "+;
+    U_FLOGJG(cIdProc+"Parâmetros: "+;
             "cEmp: "+IIf(ValType(cEmp)=="C",cEmp,"Null")+;
             ", cListFil: "+IIf(ValType(cListFil)=="C",cListFil,"Null")+;
             ", cListaFil: "+IIf(ValType(cListaFil)=="C",cListaFil,"Null")+;
@@ -107,7 +113,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
     If IsBlind()
         RPCSetType(3) //Nao consome licenca 
         If !RpcSetEnv(cEmp , cFil, Nil, Nil, "FAT", "U_JGRT012", {'SC6','SC5','SL1'} )
-            U_FLOGJG("JOB#" + cIdSemaforo + "# Thread ["+cValToChar(ThreadID())+"] RPCSetEnv: FALHA AO INICIAR AMBIENTE" )
+            U_FLOGJG(cIdProc+"RPCSetEnv: FALHA AO INICIAR AMBIENTE" )
             GlbNmUnlock(cIdSemaforo)
             Return()
         EndIf
@@ -122,12 +128,12 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
     If lOriSched
         cListFil := GetNewPar("JG_FILTRFA","")
 
-        U_FLOGJG("JOB#" + cIdSemaforo + "# Thread ["+cValToChar(ThreadID())+"] - Parâmetros: "+;
+        U_FLOGJG(cIdProc+"Parâmetros: "+;
                 "cEmp: "+IIf(ValType(cEmp)=="C",cEmp,"Null")+;
                 ", cListFil: "+IIf(ValType(cListFil)=="C",cListFil,"Null") )
 
         If Empty(cListFil)
-            U_FLOGJG("Configure o parâmetro JG_FILTRFA com a lista das filiais para processamento das transferências!")
+            U_FLOGJG(cIdProc+"Configure o parâmetro JG_FILTRFA com a lista das filiais para processamento das transferências!")
             GlbNmUnlock(cIdSemaforo)
             Return()
         EndIf
@@ -135,7 +141,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
         aFilial := StrTokArr2( Alltrim(cListFil), "," )
 
         If Len(aFilial)==0
-            U_FLOGJG("Configure o parâmetro JG_FILTRFA com a lista das filiais para processamento das transferências!")
+            U_FLOGJG(cIdProc+"Configure o parâmetro JG_FILTRFA com a lista das filiais para processamento das transferências!")
             GlbNmUnlock(cIdSemaforo)
             Return()
         EndIf
@@ -153,14 +159,14 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
 
             //Quando mudar a data o Job finaliza, evita que a rotina rode mais de um dia com a mesma Thread.
             If dDtStart<>Date()
-                U_FLOGJG("JOB#" + cIdSemaforo + "# Thread ["+cValToChar(ThreadID())+"] FINALIZADA COM A MUDANCA DE DATA" )
+                U_FLOGJG(cIdProc+"FINALIZADA COM A MUDANCA DE DATA" )
                 Exit
             EndIf
 
             If IsBlind()
-                FWMonitorMsg( 'JOB( ' + cIdSemaforo + ' ) - *STARTED '+TIME() )	// Imprime no monitor a Identificacao da Thread          
+                FWMonitorMsg( "JOB(" + cIdSemaforo + ") - *STARTED "+TIME() )	// Imprime no monitor a Identificacao da Thread          
             Else
-                U_FLOGJG( 'JOB( ' + cIdSemaforo + ' ) - *STARTED '+TIME() )
+                U_FLOGJG( "JOB(" + cIdSemaforo + ") - *STARTED "+TIME() )
             EndIf
 
             //Rotina específica para a transferência imediata da Matriz para a filial 0104.
@@ -206,7 +212,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
 
                 cSemaforo := "JGRT012A_"+aFilProc[nA][1]
                 If GlbNmLock(cSemaforo) //Verifica se o identificador Semaforo esta em uso.
-                    GlbNmUnlock(cSemaforo) //Libera o bloqueio o identificador Semaforo para uso do job
+                    GlbNmUnlock(cSemaforo) //Libera o bloqueio do identificador Semaforo para uso do job
                     If IsBlind()
                         StartJob( "U_JGRT012A", GetEnvServer(), .F., { cEmp, aFilProc[nA][1], cSemaforo } )
                     Else
@@ -245,7 +251,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
 
                 cSemaforo := "JGRT012B_"+aFilProc[nA][1]
                 If GlbNmLock(cSemaforo) //Verifica se o identificador Semaforo esta em uso.
-                    GlbNmUnlock(cSemaforo) //Libera o bloqueio o identificador Semaforo para uso do job
+                    GlbNmUnlock(cSemaforo) //Libera o bloqueio do identificador Semaforo para uso do job
                     If IsBlind()
                         StartJob( "U_JGRT012B", GetEnvServer(), .F., { cEmp, aFilProc[nA][1], cSemaforo } )
                     Else
@@ -284,7 +290,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
 
                 cSemaforo := "JGRT12C1_"+aFilProc[nA][1]
                 If GlbNmLock(cSemaforo) //Verifica se o identificador Semaforo esta em uso.
-                    GlbNmUnlock(cSemaforo) //Libera o bloqueio o identificador Semaforo para uso do job
+                    GlbNmUnlock(cSemaforo) //Libera o bloqueio do identificador Semaforo para uso do job
                     If IsBlind()
                         StartJob( "U_JGRT12C1", GetEnvServer(), .F., { cEmp, aFilProc[nA][1], cSemaforo } )
                     Else
@@ -324,7 +330,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
 
                 cSemaforo := "JGRT12C2_"+aFilProc[nA][1]
                 If GlbNmLock(cSemaforo) //Verifica se o identificador Semaforo esta em uso.
-                    GlbNmUnlock(cSemaforo) //Libera o bloqueio o identificador Semaforo para uso do job
+                    GlbNmUnlock(cSemaforo) //Libera o bloqueio do identificador Semaforo para uso do job
                     If IsBlind()
                         StartJob( "U_JGRT12C2", GetEnvServer(), .F., { cEmp, aFilProc[nA][1], cSemaforo } )
                     Else
@@ -363,7 +369,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
 
                 cSemaforo := "JGRT012D_"+aFilProc[nA][1]
                 If GlbNmLock(cSemaforo) //Verifica se o identificador Semaforo esta em uso.
-                    GlbNmUnlock(cSemaforo) //Libera o bloqueio o identificador Semaforo para uso do job
+                    GlbNmUnlock(cSemaforo) //Libera o bloqueio do identificador Semaforo para uso do job
                     If IsBlind()
                         StartJob( "U_JGRT012D", GetEnvServer(), .F., { cEmp, aFilProc[nA][1], cSemaforo } )
                     Else
@@ -402,7 +408,7 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
 
                 cSemaforo := "JGRT012E_"+aFilProc[nA][1]
                 If GlbNmLock(cSemaforo) //Verifica se o identificador Semaforo esta em uso.
-                    GlbNmUnlock(cSemaforo) //Libera o bloqueio o identificador Semaforo para uso do job
+                    GlbNmUnlock(cSemaforo) //Libera o bloqueio do identificador Semaforo para uso do job
                     If IsBlind()
                         StartJob( "U_JGRT012E", GetEnvServer(), .F., { cEmp, aFilProc[nA][1], cSemaforo } )
                     Else
@@ -414,9 +420,9 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
 
             If nSleep > 0
                 If IsBlind()
-                    FWMonitorMsg( 'JOB(' + cIdSemaforo + ') - *STANDBY '+TIME() )	// Imprime no monitor a Identificacao da Thread
+                    FWMonitorMsg( "JOB(" + cIdSemaforo + ") - *STANDBY "+TIME() )	// Imprime no monitor a Identificacao da Thread          
                 Else
-                    U_FLOGJG( 'JOB(' + cIdSemaforo + ') - *STANDBY '+TIME() )	// Imprime no monitor a Identificacao da Thread
+                    U_FLOGJG( "JOB(" + cIdSemaforo + ") - *STANDBY "+TIME() )
                 EndIf
                 Sleep(nSleep) // Quantidade de milissegundos no qual a thread irá ficar sem executar.
             Else
@@ -432,19 +438,19 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
         //RECOVER - Define um ponto de recuperação, dentro do bloco de sequência, para o qual o 
         //fluxo de execução será desviado após a execução de um comando BREAK.
 
-        U_FLOGJG('O seguinte erro ocorreu: ' + __cErr+__cStack)
+        U_FLOGJG(cIdProc+"O seguinte erro ocorreu: " + __cErr+__cStack)
 
-        U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cIdSemaforo + ' )' )
+        U_FLOGJG(cIdProc+"#BEGIN SEQUENCE->RECOVER# Desviado apos erro.")
 
         ErrorBlock(bBlock)
 
-    END SEQUENCE  
+    END SEQUENCE
 
     If IsBlind()
         RpcClearEnv()   //Libera o Ambiente
     EndIf
 
-    GlbNmUnlock(cIdSemaforo) //Libera o bloqueio o identificador Semaforo para uso
+    GlbNmUnlock(cIdSemaforo) //Libera o bloqueio do identificador Semaforo para uso
 
 Return
 
@@ -1421,7 +1427,7 @@ BEGIN SEQUENCE
     cQry += "     "+RetSqlName("SC5")+" SC5 " + CRLF
     cQry += " WHERE " + CRLF
     cQry += "     SC5.D_E_L_E_T_ <> '*' " + CRLF
-    cQry += "     AND C5_FILIAL = "+cValToChar(cFilAnt)+" " + CRLF
+    cQry += "     AND C5_FILIAL = "+ValToSql(cFilAnt)+" " + CRLF
     cQry += "     AND C5_XMOVTRF = "+ValToSql(JGTrPVNPA)+" " + CRLF
     cQry += "     AND C5_NOTA <> ' ' " + CRLF
     cQry += " ORDER BY " + CRLF
@@ -1643,7 +1649,7 @@ BEGIN SEQUENCE
     cQry += "     "+RetSqlName("SC5")+" SC5 " + CRLF
     cQry += " WHERE " + CRLF
     cQry += "     SC5.D_E_L_E_T_ <> '*' " + CRLF
-    cQry += "     AND C5_FILIAL = "+cValToChar(cFilAnt)+" " + CRLF
+    cQry += "     AND C5_FILIAL = "+ValToSql(cFilAnt)+" " + CRLF
     cQry += "     AND C5_XMOVTRF = "+ValToSql(JGTrPVNPE)+" " + CRLF
     cQry += "     AND C5_NOTA <> ' ' " + CRLF
     cQry += " ORDER BY " + CRLF
