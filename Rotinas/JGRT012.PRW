@@ -193,7 +193,11 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
             cQry += "             "+RetSqlName("SC5")+" SC5 " + CRLF
             cQry += "         WHERE " + CRLF
             cQry += "             SC5.D_E_L_E_T_ <> '*' " + CRLF
-            cQry += "             AND C5_FILIAL = L1_XFILTRF AND C5_XFILTRF = L1_FILIAL AND C5_XORCTRF = L1_NUM AND C5_XMOVTRF <> ' ' " + CRLF
+            cQry += "             AND C5_FILIAL = L1_XFILTRF " + CRLF
+            cQry += "             AND C5_XFILTRF = L1_FILIAL " + CRLF
+            cQry += "             AND C5_XORCTRF = L1_NUM " + CRLF
+            cQry += "             AND C5_XMOVTRF <> ' ' " + CRLF
+            cQry += "             AND C5_XMOVTRF <> 'X' " + CRLF
             cQry += "     ) " + CRLF
 
             cQry += " ORDER BY " + CRLF

@@ -1,4 +1,5 @@
 #include "Totvs.ch"
+#Include "jgtransf.ch"
 
 /*/{Protheus.doc} M460FIM
 Ponto de entrada após a gravação da Nota Fiscal de Saída.
@@ -16,7 +17,6 @@ User Function M460FIM()
     Local cCondPag  := SF2->F2_COND
     Local cFormaPg  := ""
 //    Local cBolNew   := 1  // 1 =M460
-    //Leo
    	Local cAreaAnt := Alias()
 	Local aAreaSD2 := SD2->(getArea())
 	Local aAreaSF2 := SF2->(getArea())
@@ -25,7 +25,7 @@ User Function M460FIM()
 	Local aAreaSE1 := SE1->(getArea())   
 	Local aAreaSE4 := SE4->(getArea())   
 	Local aAreaSA1 := SA1->(getArea())
-    //Leo  
+
     DbSelectArea("SE4")
     SE4->(DbSetOrder(1))
     
@@ -90,7 +90,7 @@ User Function M460FIM()
     EndIf
 
     RestArea(aArea)
-    //Leo
+
 	// Restaura ambiente
 	RestArea(aAreaSD2)
 	RestArea(aAreaSF2)
@@ -100,6 +100,5 @@ User Function M460FIM()
 	RestArea(aAreaSE4)
 	RestArea(aAreaSA1)  
 	dbSelectArea(cAreaAnt)
-    //Leo
 
 Return .T.
