@@ -44,6 +44,7 @@ User Function JGRT001(_cCodProd)
 	Local _aSA1           := SA1->( FWGetArea() )
 	Local _aSA2           := SA2->( FWGetArea() )
 	Local _aSY1           := SY1->( FWGetArea() )
+	Local _cUserShwCusto  := SuperGetMV("MV_XUSRCUS", .F.,"")
 
 	//Variáveis para guardar a definição do atalho de teclado para posterior restauração
 	Local bSetF11         := Nil
@@ -56,7 +57,7 @@ User Function JGRT001(_cCodProd)
 	// Private lShwCusto  := ( FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;000003;" ) ) // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
 	// Private lShwPrcCompra := FWIsInCallStack("A120PEDIDO") .And. FWIsInCallStack("MATA120") .And. FWIsInCallStack("MATA121") // Chamada de dentro do pedido de compra
 
-	Private lShwCusto     := FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;000003;" )                                         // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
+	Private lShwCusto     := FwIsAdmin() .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000001;000002;000003;" ) .Or. __CUSERID $ _cUserShwCusto  // Diretor, Supervisor/Gerente Geral ou Gerente de Loja
 	Private lShwEstMatriz := FWIsInCallStack("MATA410") .Or. FWIsInCallStack("MATA415") .Or. ( !Empty(cCarVndLog) .And. cCarVndLog $ "000003;" ) // Chamada de dentro do pedido de venda ou orçamento
 	Private lShwPrcCompra := FWIsInCallStack("A120PEDIDO") .And. FWIsInCallStack("MATA120") .And. FWIsInCallStack("MATA121")                     // Chamada de dentro do pedido de compra
 
