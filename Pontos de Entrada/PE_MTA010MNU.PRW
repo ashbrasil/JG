@@ -13,9 +13,11 @@
 @return Nil
 /*/
 User Function MTA010MNU()
-	
+
+	Local _cUserAtPrc  := SuperGetMV("MV_XUSRATU", .F.,"")
+
 	/* Rotina de atualização de preços */
-    If FWIsAdmin()
+    If FWIsAdmin() .or. __CUSERID $ _cUserAtPrc
 	    AAdd(aRotina, {OemToAnsi("Atualiza Preços"), "U_JGATUPRE", 0, 2, 0, NIL})
 	EndIf
 
