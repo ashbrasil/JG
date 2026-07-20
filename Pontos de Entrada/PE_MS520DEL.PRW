@@ -27,7 +27,7 @@ User Function MS520DEL()
 		If !Empty(SC5->C5_XMOVTRF)
 	    	nSC5RECNO := SC5->(RecNo())
 			U_JGRT11_E(nSC5RECNO, JGTrPVExO, JGTrOrExO) //Grava Status no Pedido e no Orçamento
-			U_JGRT11_D("P", nSC5RECNO, "Nota fiscal de saída por transferência ("+SF2->(F2_FILIAL+"-"+F2_DOC+"-"+F2_SERIE)+") excluída pelo usuário: "+__cUserId+"-"+cUserName+" em "+DToC(Date())+" às "+Time())//Grava Status no Pedido e no Orçamento
+			U_JGRT11_D("P", nSC5RECNO, "Nota fiscal de saída por transferência ("+SF2->(F2_FILIAL+"-"+F2_DOC+"-"+F2_SERIE)+") excluída.")//Grava Status no Pedido e no Orçamento
 			// Chamada à função de resíduo do pedido
 			U_JGRT11_G(.T.)
 		EndIf

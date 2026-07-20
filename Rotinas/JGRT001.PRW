@@ -28,7 +28,6 @@ User Function JGRT001(_cCodProd)
 	Local _cChvFab	      := Space(TamSX3("B1_FABRIC")[1]) //chave para fabricante/marca
 	Local _cChvMod	      := Space(TamSX3("B1_MODELO")[1]) //chave para modelo
 	Local _aTitulos       := {}
-	Local cEmpBkp         := ""
 	Local cFilBkp         := ""
 	Local _cUFFil         := ""
 	Local aSM0Lista       := {}
@@ -123,8 +122,7 @@ User Function JGRT001(_cCodProd)
 	// Cria a fonte para ser usada na montagenm da tela
 	_oFonte1  := TFont():New( "Arial",,14,,.T.)
 
-	// Guarda da empresa e filial corrente
-	cEmpBkp := cEmpAnt
+	// Guarda da filial corrente
 	cFilBkp := cFilAnt
 	// Guarda a UF da filial logada
 	aInfSM0 := FWSM0Util():GetSM0Data( cEmpAnt, cFilAnt, { "M0_ESTENT" } )
@@ -140,9 +138,9 @@ User Function JGRT001(_cCodProd)
 
 	For nF:=1 To Len(aSM0Lista) 
 
-		If aSM0Lista[nF][nPEmpresa] == cEmpBkp
+		If aSM0Lista[nF][nPEmpresa] == cEmpAnt
 
-			aInfSM0 := FWSM0Util():GetSM0Data( cEmpBkp, aSM0Lista[nF][nPFilial], { "M0_ESTENT" } )
+			aInfSM0 := FWSM0Util():GetSM0Data( cEmpAnt, aSM0Lista[nF][nPFilial], { "M0_ESTENT" } )
 
 			If aInfSM0[1][2] == _cUFFil
 				If !Empty(_cFiliais)
@@ -171,9 +169,8 @@ User Function JGRT001(_cCodProd)
 	Next nF
 	ASize(aUserFils,0)
 
-	// Restauração da empresa e filial corrente
-	//cEmpAnt := cEmpBkp
-	//cFilAnt := cFilBkp
+	// Restauração da filial corrente
+	cFilAnt := cFilBkp
 	FWSM0Util():setSM0PositionBycFilant()
 
 	//dbSelectArea("DA1")

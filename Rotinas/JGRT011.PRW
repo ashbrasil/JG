@@ -71,15 +71,15 @@ Return NIL
 //-------------------------------------------------------------
 Static Function MenuDef()
 	Local aRotina := {}
-	
-	ADD OPTION aRotina TITLE 'Visualizar' 					ACTION 'a410Visual()'	 	OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 2
+
+	ADD OPTION aRotina TITLE 'Visualizar' 					ACTION 'a410Visual'		OPERATION MODEL_OPERATION_VIEW   ACCESS 0 //OPERATION 2
 	ADD OPTION aRotina TITLE 'Incluir'    					ACTION 'U_JGRT011A()' 	OPERATION MODEL_OPERATION_INSERT ACCESS 0 //OPERATION 3
 	ADD OPTION aRotina TITLE 'Gerar/Imprimir Danfe'			ACTION 'U_JGRT11_A()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
 	ADD OPTION aRotina TITLE 'Gerar Entrada Destino' 		ACTION 'U_JGRT11_B()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
 	ADD OPTION aRotina TITLE 'Liberar Separação do Pedido'	ACTION 'U_JGRT11_C()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
 	ADD OPTION aRotina TITLE 'Cancelar a Transferência'		ACTION 'U_JGRT11_G()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
 	If FWIsAdmin()
-		ADD OPTION aRotina TITLE 'Executa Job Manualmente' 		ACTION 'U_JGRT11_J()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
+	ADD OPTION aRotina TITLE 'Executa Job Manualmente' 		ACTION 'U_JGRT11_J()' 	OPERATION 7                      ACCESS 0 //OPERATION 7
 	EndIf
 
 Return aRotina
@@ -224,13 +224,13 @@ User Function JGRT11_C()
 
 				If !SC5->(Deleted())
 
-					If SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+					If SoftLock("SC5") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 
 						If SC5->C5_XMOVTRF == JGTrPVPSp
 
 							U_FLOGJG(cIdMov+" Antes U_JGRT11_C - Libera pedido sem Separação"+" Time:"+TIME())
 							U_JGRT11_E(SC5->(Recno()), JGTrPVPFt, JGTrOrPPF)//Grava Status no Pedido e no Orçamento
-							U_JGRT11_D("P", SC5->(Recno()), "Separação liberada pelo usuário: "+__cUserId+"-"+cUserName+" em "+DToC(Date())+" às "+Time())//Grava Status no Pedido e no Orçamento
+							U_JGRT11_D("P", SC5->(Recno()), "Separação liberada.")//Grava Status no Pedido e no Orçamento
 
 							If SC5->C5_XMOVTRF == JGTrPVPFt
 								lRet := .T.
@@ -297,7 +297,7 @@ User Function JGRT11_D(cIdentOrig, nRecno, cTextoLog)
 	Local _aArea     := FWGetArea()
 	Local _aAreaSC5  := SC5->(FWGetArea())
 	Local _aAreaSL1  := SL1->(FWGetArea())
-	Local cLinhaLog  := DToC(Date())+" - "+Time()+" - Usuário: "+__cUserId+"-"+cUserName+" - "+ProcName(1)+">"+ProcName(0)+CRLF+cTextoLog+CRLF
+	Local cLinhaLog  := DToC(Date())+" - "+Time()+" - Usuário: "+__cUserId+"-"+cUserName+" - "+ProcName(1)+" > "+ProcName(0)+CRLF+CRLF+cTextoLog
 
 	U_FLOGJG(ProcName(1) +">"+ ProcName(0) + " SM0:"+SM0->M0_CODFIL+" cFilAnt: "+cFilAnt )
 
@@ -312,7 +312,7 @@ User Function JGRT11_D(cIdentOrig, nRecno, cTextoLog)
 			SL1->(DbGoTo(nRecno))
 			If SL1->(Recno()) = nRecno
 				If RecLock("SL1", .F.)
-					SL1->L1_XLOGTRF += cLinhaLog
+					SL1->L1_XLOGTRF := cLinhaLog
 					SL1->(MsUnlock())
 					lRet := .T.
 				EndIf
@@ -321,7 +321,7 @@ User Function JGRT11_D(cIdentOrig, nRecno, cTextoLog)
 			SC5->(DbGoTo(nRecno))
 			If SC5->(Recno()) = nRecno
 				If RecLock("SC5", .F.)
-					SC5->C5_XLOGTRF += cLinhaLog
+					SC5->C5_XLOGTRF := cLinhaLog
 					SC5->(MsUnlock())
 					lRet := .T.
 				EndIf
@@ -329,7 +329,7 @@ User Function JGRT11_D(cIdentOrig, nRecno, cTextoLog)
 			If !Empty(SC5->C5_XFILTRF) .And. !Empty(SC5->C5_XORCTRF)
 				If SL1->(DbSeek(SC5->C5_XFILTRF+SC5->C5_XORCTRF)) .And. SL1->(L1_FILIAL+L1_NUM) == SC5->(C5_XFILTRF+C5_XORCTRF) .And. Empty(SL1->L1_DOC)
 					If RecLock("SL1", .F.)
-						SL1->L1_XLOGTRF += cLinhaLog
+						SL1->L1_XLOGTRF := cLinhaLog
 						SL1->(MsUnlock())
 					EndIf
 				EndIf
@@ -636,10 +636,10 @@ User Function JGRT11_G(p_Ms520Del)
 						"Para que seja possível o cancelamento deste pedido, faz-se necessário cancelar/excluir/estornar "+;
 						"as ordens de separação."
 
-			If p_Ms520Del .Or. SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+			If p_Ms520Del .Or. SoftLock("SC5") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 				If SC5->C5_XMOVTRF $ JGTrPVPSp+"/"+JGTrPVPFt+"/"+JGTrPVExO+"/"+JGTrPVOS
 					U_JGRT11_E(SC5->(Recno()), JGTrPVOS, JGTrOrOS)//Grava Status no Pedido
-					U_JGRT11_D("P", SC5->(Recno()), DToC(Date()) + " - Time:"+TIME() + " - "+cMsgRes)//Grava Status no Pedido e no Orçamento
+					U_JGRT11_D("P", SC5->(Recno()), cMsgRes)//Grava Status no Pedido e no Orçamento
 				EndIf
 				If !p_Ms520Del .And. IsLocked("SC5", SC5->(Recno()))
 					SC5->(MsrUnlock()) //Libera o SoftLock
@@ -662,7 +662,7 @@ User Function JGRT11_G(p_Ms520Del)
 
 					// cIdMov := ""
 
-					If p_Ms520Del .Or. SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+					If p_Ms520Del .Or. SoftLock("SC5") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 
 						If SC5->C5_XMOVTRF $ JGTrPVPSp+"/"+JGTrPVPFt+"/"+JGTrPVExO
 
@@ -686,12 +686,14 @@ User Function JGRT11_G(p_Ms520Del)
 								Else
 									FWAlertSuccess(OemToAnsi(cMsgRes), OemToAnsi("Transferência cancelada"))
 								EndIf
+								U_JGRT11_D("P", SC5->(Recno()), "Transferencia cancelada.")//Grava Status no Pedido e no Orçamento
 							Else
 								If IsBlind() .Or. p_Ms520Del
-									U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cMsgRes)
+									U_FLOGJG(cIdMov + " - Time:"+TIME() + " - "+cRet)
 								Else
 									FWAlertError(OemToAnsi(cRet), OemToAnsi("Falha no cancelamento"))
 								EndIf
+								U_JGRT11_D("P", SC5->(Recno()), cRet)//Grava Status no Pedido e no Orçamento
 							EndIf
 
 						Else
@@ -860,7 +862,7 @@ User Function JGRT11G1()
 
         cStatus := __cErr
 
-        U_FLOGJG('O seguinte erro ocorreu: ' + __cErr+__cStack)
+        U_FLOGJG('O seguinte erro ocorreu: ' + __cErr+CRLF+__cStack)
 
     END SEQUENCE
 

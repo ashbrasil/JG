@@ -1013,7 +1013,7 @@ Static Function fGera(_cCliente, cARMO, cARMD, cARMF, cObser, cSolicit, aHeader,
 			/*旼컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴커
 			�                 		Gera Pedido e Nota fiscal de saida					  �
 			읕컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴켸*/
-			aDoc := U_JGRT011B( 0, _cCliente, cARMO, cARMD, cObser, aSC5, aSC6 )
+			aDoc := U_JGRT011B( 0, _cCliente, cARMO, cARMD, cObser, aSC5, aSC6, /*cLogTrf*/ )
 			MsUnLockAll()
 			If cFilAnt <> _cFilO
 				// cFilAnt := _cFilO

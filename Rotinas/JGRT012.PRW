@@ -120,7 +120,6 @@ User Function JGRT012(uParam, _cFiliais, xIntervalo)
         //inicializa as variaveis publicas
         InitPublic()
     Else
-        cEmpAnt := cEmp
         cFilAnt := cFil
         U_JGRT11_F()
     EndIf
@@ -506,7 +505,6 @@ If IsBlind()
     InitPublic()
 EndIf
 
-cEmpAnt := cEmp
 cFilAnt := cFil
 U_JGRT11_F()
 
@@ -554,7 +552,7 @@ BEGIN SEQUENCE
 
             nRecnoSL1 := SL1->(Recno())
 
-            If SoftLock("SL1") //Evitar de 2 usuários tentar executar no mesmo tempo
+            If SoftLock("SL1") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 
                 cIdMov  := "["+(cAliasProc)->L1_XFILTRF +"-"+ (cAliasProc)->L1_FILIAL +"-"+ (cAliasProc)->L1_NUM +"]"
                 
@@ -592,7 +590,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSL1, __cErrX+__cStackX)
+    U_JGRT11_D("O", nRecnoSL1, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -787,13 +785,15 @@ User Function JGRT12A1()
         ³                 		            Gera Pedido         					  ³
         ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ*/
 
-        aDoc := U_JGRT011B( 0, _cCliente, cARMO, cARMD, cObser, aSC5, aSC6 )
+        aDoc := U_JGRT011B( 0, _cCliente, cARMO, cARMD, cObser, aSC5, aSC6, /*cLogTrf*/ )
         MsUnLockAll()
 
         If cFilAnt <> _cFilO
             // cFilAnt := _cFilO
             U_JGRT11_F(_cFilO) //Ajuste cFilAnt <> M0_CODFIL
         EndIf
+
+        // Return( { cNota, cSerie, nRecnoNF, _cPedido, nRecnoPed, cErrorBlock } )
 
         If Len(aDoc) >= 6
             If !Empty(aDoc[4])
@@ -802,8 +802,10 @@ User Function JGRT12A1()
                     SL1->(MsUnlock())
                 EndIf
                 U_JGRT11_E(aDoc[5], JGTrPVPFt, JGTrOrPPF)//Grava Status no Pedido
-            ElseIf !Empty(aDoc[6])
+            EndIf
+            If !Empty(aDoc[6])
                 cMsg += aDoc[6]
+                U_JGRT11_D("P", aDoc[5], cMsg)//Grava Log de Erro
             EndIf
         Else
             cMsg := "Ocorreu alguma falha sistêmica na tentativa de gerar o pedido de venda de transferência."
@@ -888,7 +890,6 @@ If IsBlind()
     InitPublic()
 EndIf
 
-cEmpAnt := cEmp
 cFilAnt := cFil
 U_JGRT11_F()
 
@@ -952,7 +953,7 @@ BEGIN SEQUENCE
             // If (cAliasProc)->NRITENS = (cAliasProc)->NRITNAOFIN
             If (cAliasProc)->NRITNAOFIN = 0 //Se não existe item pendente de finalização de separação, atualiza o status para Pendente de Faturamento
 
-                If SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+                If SoftLock("SC5") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 
                     cIdMov  := "["+(cAliasProc)->C5_FILIAL +"-"+ (cAliasProc)->C5_NUM +"]"
                     
@@ -992,7 +993,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+__cStackX)
+    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1062,7 +1063,6 @@ If IsBlind()
     InitPublic()
 EndIf
 
-cEmpAnt := cEmp
 cFilAnt := cFil
 U_JGRT11_F()
 
@@ -1100,7 +1100,7 @@ BEGIN SEQUENCE
 
             nRecnoSC5 := SC5->(Recno())
 
-            If SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+            If SoftLock("SC5") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 
                 cIdMov  := "["+(cAliasProc)->C5_FILIAL +"-"+ (cAliasProc)->C5_NUM +"]"
 
@@ -1158,7 +1158,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+__cStackX)
+    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1229,7 +1229,6 @@ If IsBlind()
     InitPublic()
 EndIf
 
-cEmpAnt := cEmp
 cFilAnt := cFil
 U_JGRT11_F()
 
@@ -1267,7 +1266,7 @@ BEGIN SEQUENCE
 
             nRecnoSC5 := SC5->(Recno())
 
-            If SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+            If SoftLock("SC5") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 
                 cIdMov  := "["+(cAliasProc)->C5_FILIAL +"-"+ (cAliasProc)->C5_NUM +"]"
 
@@ -1300,7 +1299,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+__cStackX)
+    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1415,7 +1414,6 @@ If IsBlind()
     InitPublic()
 EndIf
 
-cEmpAnt := cEmp
 cFilAnt := cFil
 U_JGRT11_F()
 
@@ -1451,7 +1449,7 @@ BEGIN SEQUENCE
 
             nRecnoSC5 := SC5->(Recno())
 
-            If SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+            If SoftLock("SC5") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 
                 cIdMov  := "["+(cAliasProc)->C5_FILIAL +"-"+ (cAliasProc)->C5_NUM +"] - ["+(cAliasProc)->C5_NOTA +"-"+ (cAliasProc)->C5_SERIE +"]"
                 
@@ -1486,7 +1484,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+__cStackX)
+    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1578,7 +1576,7 @@ User Function JGRT12D1(cSemaforo)
 
         U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-        U_JGRT11_D("O", nRecnoSC5, __cErrX+__cStackX)
+        U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
         ErrorBlock(bBlock)
 
@@ -1637,7 +1635,6 @@ If IsBlind()
     InitPublic()
 EndIf
 
-cEmpAnt := cEmp
 cFilAnt := cFil
 U_JGRT11_F()
 
@@ -1673,7 +1670,7 @@ BEGIN SEQUENCE
 
             nRecnoSC5 := SC5->(Recno())
 
-            If SoftLock("SC5") //Evitar de 2 usuários tentar executar no mesmo tempo
+            If SoftLock("SC5") //Evitar que 2 usuários acessem o mesmo registro simultaneamente
 
                 cIdMov  := "["+(cAliasProc)->C5_FILIAL +"-"+ (cAliasProc)->C5_NUM +"] - ["+(cAliasProc)->C5_NOTA +"-"+ (cAliasProc)->C5_SERIE +"]"
                 
@@ -1708,7 +1705,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+__cStackX)
+    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1805,7 +1802,7 @@ User Function JGRT12E1(cSemaforo)
 
         U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-        U_JGRT11_D("O", nRecnoSC5, __cErrX+__cStackX)
+        U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
         ErrorBlock(bBlock)
 

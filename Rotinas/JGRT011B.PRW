@@ -15,9 +15,11 @@
 ±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±±
 ßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßßß
 */
-User Function JGRT011B(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, aSC6)
+User Function JGRT011B(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, aSC6, cLogTrf)
 	Local _aArea := FWGetArea()
 	Local aDoc
+
+	Default cLogTrf := ""
 
 	Private _MSG := {| cStr | Iif(ValType(oSay)=="O", (oSay:cCaption := (cStr) , ProcessMessages()), U_FLOGJG(cStr)) }
 
@@ -28,9 +30,9 @@ User Function JGRT011B(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5,
 	U_JGRT11_F() //Ajuste cFilAnt <> M0_CODFIL
 
 	If IsBlind() .Or. FWIsInCallStack("JGRT011") //Chama direto a geração sem mostrar o progresso para não travar a tela do pedido.
-		aDoc := fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, aSC6)
+		aDoc := fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, aSC6, , cLogTrf)
 	Else
-		FWMsgRun(, {|oSay| aDoc := fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, aSC6, @oSay) }, ;
+		FWMsgRun(, {|oSay| aDoc := fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, aSC6, @oSay, cLogTrf) }, ;
 							"Processando - "+IIf(_nRecnoPed>0,"Nota Fiscal", "Pedido de Venda"), "Aguarde, processando a rotina" )
 	EndIf
 
@@ -38,7 +40,7 @@ User Function JGRT011B(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5,
 
 Return( aDoc )
 
-Static Function fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, aSC6, oSay)
+Static Function fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, aSC6, oSay, _cLogTrf)
 
     Local cAliasAnt    	:= Alias()
     Local aArea         := FwGetArea()
@@ -66,12 +68,14 @@ Static Function fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, 
 	Local nRecnoNf      := 0
 	Local cNota 		:= ""
 	Local cSerie		:= ""
+	Local cLogAjustado  := ""
 	// Local C
 	Local x, y, nX
 
-	Default oSay := Nil
-	Default aSC5 := {} //Array com campos extras parar adicionar no ExecAuto.
-	Default aSC6 := {} //Array com campos extras parar adicionar no ExecAuto.
+	Default oSay     := Nil
+	Default aSC5     := {} //Array com campos extras parar adicionar no ExecAuto.
+	Default aSC6     := {} //Array com campos extras parar adicionar no ExecAuto.
+	Default _cLogTrf := ""
 
 	DBSelectArea("SC5")
 	DBSelectArea("SC6")
@@ -88,6 +92,13 @@ Static Function fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, 
 		_aCab   := AClone(aSC5)
 		If !Empty(_cObs) .And. (AScan(_aCab, {|x| x[1] == "C5_XMSNOTA"}) == 0)
 		    AAdd(_aCab, {"C5_XMSNOTA", _cObs, Nil} )
+		EndIf
+		If (AScan(_aCab, {|x| x[1] == "C5_XLOGTRF"}) == 0)
+			// cLogAjustado := "Pedido gerado automaticamente em "+DToC(Date())+" às "+SubStr(Time(),1,5)+" pelo usuário: "+cUserName+"."+CRLF
+			If !Empty(_cLogTrf)
+				cLogAjustado += _cLogTrf+CRLF
+			EndIf
+		    AAdd(_aCab, {"C5_XLOGTRF", cLogAjustado, Nil} )
 		EndIf
 
 		_aItens := AClone(aSC6)
@@ -109,14 +120,16 @@ Static Function fGera(_nRecnoPed, _cCliente, _cArmOrig, _cArmDest, _cObs, aSC5, 
 
 				If !lMsErroAuto
 
+					_cPedido  := SC5->C5_NUM
+					nRecnoPed := SC5->(RECNO())
+
+					U_JGRT11_D("P", nRecnoPed, "Pedido de venda "+_cPedido+" gerado automaticamente.")//Grava Status no Pedido e no Orçamento
+
 					If !IsBlind()
 						FWAlertSuccess("Foi gerado pedido no faturamento - Número: "+SC5->C5_NUM, "Pedido Gerado")
 					Else
 						U_FLOGJG("Foi gerado pedido no faturamento - Número: "+SC5->C5_NUM)
 					EndIf
-
-					_cPedido  := SC5->C5_NUM
-					nRecnoPed := SC5->(RECNO())
 
 					// U_JGRT11_E(SC5->(RECNO()), JGTrPVPSp)//Grava Status no Pedido
 
