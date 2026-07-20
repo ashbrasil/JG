@@ -16,6 +16,7 @@ User Function JGATUPRE(cEmp, cFil)
 	Local aAreaSB1    As Array
     Local aTables     As Array
     Local lTodos      As Logical
+    Local _cUserAtPrc  := SuperGetMV("MV_XUSRATU", .F.,"")
 
 	Private nStart    As Numeric
 	Private cSemaforo As String
@@ -48,7 +49,7 @@ User Function JGATUPRE(cEmp, cFil)
         SET CENTURY ON
     EndIf
 
-    If !FWIsAdmin()
+    If !FWIsAdmin() .and. !__CUSERID $ _cUserAtPrc
         If IsBlind()
             RpcClearEnv() 
         Else
