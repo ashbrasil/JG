@@ -172,8 +172,8 @@ User Function JGRT001(_cCodProd)
 	ASize(aUserFils,0)
 
 	// Restauração da empresa e filial corrente
-	cEmpAnt := cEmpBkp
-	cFilAnt := cFilBkp
+	//cEmpAnt := cEmpBkp
+	//cFilAnt := cFilBkp
 	FWSM0Util():setSM0PositionBycFilant()
 
 	//dbSelectArea("DA1")
