@@ -723,7 +723,9 @@ Static Function _oPesqSB1(lInicio,_cChave,_cChvGr,_cDesc,_cChvFab,_cChvBar,_cChv
 		/*	AAdd(_aTitulos, { ""       , "Codigo"        , "Descrição"        , "Marca"        , "Ref.Fornecedor", "UM"             , */
 			AAdd(_aProduto, { _cLegenda, (cAlias)->CODIGO, (cAlias)->DESCRICAO, (cAlias)->MARCA, (cAlias)->REFFOR, (cAlias)->UNIDADE, ;
 		/*	"Preço"                                       , "Custo"                                       , "Gr Trib"       , "Grupo"        , */;
-			Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), Transform((cAlias)->VCUSTOSTD,"@E 999,999.99"), (cAlias)->GRTRIB, (cAlias)->GRUPO, ;
+		/*	Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), Transform((cAlias)->VCUSTOSTD,"@E 999,999.99"), (cAlias)->GRTRIB, (cAlias)->GRUPO, ;*/;
+		/*	Jesus Ramos - 24/07/2026 - Ajustado para mostrar, temporariamente, o último preço de compra no lugar do custo standard, até que se tenha o custeio e a precificação atuantes. */;
+			Transform((cAlias)->VPRCVENDA,"@E 999,999.99"), Transform((cAlias)->VULTCOMPRA,"@E 999,999.99"), (cAlias)->GRTRIB, (cAlias)->GRUPO, ;
 		/*	"Tipo"        , "2a.UM"        , "Preço 2a.UM", "Modelo"         } ) */;
 			(cAlias)->TIPO, (cAlias)->UNID2, cPrc2UM      , (cAlias)->MODELO } )
 		Else
