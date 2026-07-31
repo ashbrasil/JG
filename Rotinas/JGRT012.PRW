@@ -805,7 +805,11 @@ User Function JGRT12A1()
             EndIf
             If !Empty(aDoc[6])
                 cMsg += aDoc[6]
-                U_JGRT11_D("P", aDoc[5], cMsg)//Grava Log de Erro
+                If !Empty(aDoc[4])
+                    U_JGRT11_D("P", aDoc[5], cMsg)//Grava Log de Erro
+                Else
+                    U_JGRT11_D("O", SL1->(Recno()), cMsg)//Grava Log de Erro
+                EndIf
             EndIf
         Else
             cMsg := "Ocorreu alguma falha sistêmica na tentativa de gerar o pedido de venda de transferência."
@@ -993,7 +997,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
+    U_JGRT11_D("P", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1133,7 +1137,7 @@ BEGIN SEQUENCE
                 EndIf
             EndIf
             If !Empty(cMsgErro)
-                U_JGRT11_D("O", nRecnoSC5, cMsgErro)//Grava Log de Erro
+                U_JGRT11_D("P", nRecnoSC5, cMsgErro)//Grava Log de Erro
             EndIf
 
             nRecnoSC5 := 0
@@ -1158,7 +1162,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
+    U_JGRT11_D("P", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1299,7 +1303,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
+    U_JGRT11_D("P", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1484,7 +1488,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
+    U_JGRT11_D("P", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1576,7 +1580,7 @@ User Function JGRT12D1(cSemaforo)
 
         U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-        U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
+        U_JGRT11_D("P", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
         ErrorBlock(bBlock)
 
@@ -1705,7 +1709,7 @@ RECOVER
 
     U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-    U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
+    U_JGRT11_D("P", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
     ErrorBlock(bBlock)
 
@@ -1802,7 +1806,7 @@ User Function JGRT12E1(cSemaforo)
 
         U_FLOGJG('#BEGIN SEQUENCE->RECOVER# Desviado apos erro : ' + 'JOB( ' + cSemaforo + ' )' )
 
-        U_JGRT11_D("O", nRecnoSC5, __cErrX+CRLF+__cStackX)
+        U_JGRT11_D("P", nRecnoSC5, __cErrX+CRLF+__cStackX)
 
         ErrorBlock(bBlock)
 
