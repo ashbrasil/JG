@@ -16,10 +16,10 @@ User Function JG05A002(cNota, cSerie, cCliente, cLoja)
 	// 1. Gera o Borderô
     // lBordOK := fGeraBord(cNota, cSerie, cCliente, cLoja)
 	// 2. Se gerou borderô com sucesso, imprime o boleto
-	If lBordOK1 
-		fImpBoleto(cNota, cSerie, cCliente, cLoja) 
+	If .F. //lBordOK1 
+	  //	fImpBoleto(cNota, cSerie, cCliente, cLoja)  //Desativado a impressão do boleto - Marcelo 05.08.26
 	Else
-		MsgStop("Não foi possível imprimir o borderô. O boleto não será impresso.", "Erro")
+	 //	MsgStop("Não foi possível imprimir o borderô. O boleto não será impresso.", "Erro")
 	EndIf
 
 Return
