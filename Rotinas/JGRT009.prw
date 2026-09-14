@@ -11,8 +11,9 @@ Função para retornar o nome do cliente ou fornecedor conforme os parâmetros info
 @param cLojCliFor, character, param_description
 @return variant, return_description
 /*/
-User Function JGRT009(cTpCliFor, cCodCliFor, cLojCliFor)
+User Function JGRT009(cTpCliFor, cCodCliFor, cLojCliFor) 
 
+	Local cAliasAnt  := Alias()
 	Local aAreaSA1   := SA1->(FWGetArea())
 	Local aAreaSA2   := SA2->(FWGetArea())
 	Local cNomCliFor := ""
@@ -39,5 +40,9 @@ User Function JGRT009(cTpCliFor, cCodCliFor, cLojCliFor)
 
 	FWRestArea(aAreaSA1)
 	FWRestArea(aAreaSA2)
+	
+	If Select(cAliasAnt) > 0
+		DbSelectArea(cAliasAnt)
+	EndIf
 
 Return cNomCliFor
